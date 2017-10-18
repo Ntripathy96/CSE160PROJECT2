@@ -434,7 +434,7 @@ implementation{
 		memcpy(&createMsg, "", sizeof(PACKET_MAX_PAYLOAD_SIZE));
 		memcpy(&dest, "", sizeof(uint8_t));
 		dbg(NEIGHBOR_CHANNEL, "Sending seq#: %d\n", neighborSequenceNum);
-		makePack(&sendPackage, TOS_NODE_ID, discoveryPacket, MAX_TTL, PROTOCOL_PING, neighborSequenceNum++, (uint8_t *)createMsg,
+		makePack(&sendPackage, TOS_NODE_ID, discoveryPacket, 20, PROTOCOL_PINGREPLY, neighborSequenceNum++, (uint8_t *)createMsg,
 				sizeof(createMsg));	
 		dbg(ROUTING_CHANNEL, "Hi, is anyone there? :D \n");
 		call Sender.send(sendPackage,AM_BROADCAST_ADDR);
@@ -494,10 +494,10 @@ implementation{
 		lspMapInit(&lspMAP,TOS_NODE_ID);
 		for(i = 0; i < friendList.numValues; i++){
 			if(1/totalAverageEMA[friendList.values[i].src]*10 < 255){
-				lspCostList[friendList.values[i].src] = 1;
+				lspCostList[friendList.values[i].src] = 1/totalAverageEMA[friendList.values[i].src]*10;
 				dbg(ROUTING_CHANNEL, "Cost to %d is %d %f %f\n", friendList.values[i].src, lspCostList[friendList.values[i].src], 1/totalAverageEMA[friendList.values[i].src]*10,totalAverageEMA[friendList.values[i].src]);
 				//puts the neighbor into the MAP
-				lspMAP[TOS_NODE_ID].cost[friendList.values[i].src] = 1;
+				lspMAP[TOS_NODE_ID].cost[friendList.values[i].src] = 1/totalAverageEMA[friendList.values[i].src]*10;
 				dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
 			}
 			else
