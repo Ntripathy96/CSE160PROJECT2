@@ -507,12 +507,12 @@ implementation{
 		lspMapInit(&lspMAP,TOS_NODE_ID);
         dbg(ROUTING_CHANNEL, "HELLO %d\n", TOS_NODE_ID);
         if(friendList.numValues == 0){
-                dbg(ROUTING_CHANNEL, "SIZE: %d\n", friendList.numValues);
+                //dbg(ROUTING_CHANNEL, "SIZE: %d\n", friendList.numValues);
         }
         
 		for(i = 0; i < friendList.numValues; i++){
 			//if(1/totalAverageEMA[friendList.values[i].src]*10 < 255){
-              //if(!arrListIsEmpty(&friendList)){  
+              if(!arrListIsEmpty(&friendList)){  
 
 				lspCostList[friendList.values[i].src] = 10;
 				//dbg(ROUTING_CHANNEL, "Cost to %d is %d %f %f\n", friendList.values[i].src, lspCostList[friendList.values[i].src], 1/totalAverageEMA[friendList.values[i].src]*10,totalAverageEMA[friendList.values[i].src]);
@@ -524,9 +524,9 @@ implementation{
                 }
 				//dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
 			//}
-			//else{
+			else{
                 //dbg(ROUTING_CHANNEL, "Not my neighbor yet. \n", friendList.values[i].src);
-            //}
+            }
 				
 		}
 		memcpy(&dest, "", sizeof(uint8_t));	
