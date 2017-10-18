@@ -272,7 +272,7 @@ implementation{
 							arrListPushBack(&lspTracker,temp1);
 							lspMapInit(&lspMAP,myMsg->src);
                             
-							dbg(ROUTING_CHANNEL,"LINK STATE PACKET from %d seq#: %d  \n", myMsg->src, myMsg->seq);								
+							//dbg(ROUTING_CHANNEL,"LINK STATE PACKET from %d seq#: %d  \n", myMsg->src, myMsg->seq);								
 							for(i = 0; i < totalNodes; i++){
 								lspMAP[myMsg->src].cost[i] = myMsg->payload[i];
                                 if(myMsg->src == 2){
@@ -284,7 +284,7 @@ implementation{
 									
 							}
                             //if(TOS_NODE_ID == 7){
-                                printlspMap(lspMAP);
+                                //printlspMap(lspMAP);
                             //}
 							makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, myMsg->protocol, myMsg->seq, (uint8_t *) myMsg->payload, 20);
 							
