@@ -96,7 +96,7 @@ implementation{
 	//project 2
 	void printlspMap(lspMap *list);
 	void lspNeighborDiscoveryPacket();
-    void lsp2NeighborDiscoveryPacket();
+    
 	void dijkstra();
 	int forwardPacketTo(lspTable* list, int dest);
 	void printCostList(lspMap *list, uint8_t nodeID);
@@ -600,36 +600,7 @@ implementation{
 
     
     
-    void lsp2NeighborDiscoveryPacket(){
-        int i;
-        //initialize cost of every node to TOS_NODE_ID to "infinity"
-        //uint8_t lspCostList[20] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}; //CHANGE NAME
-        //initialize table for this node
-        //lspMapInit(&lspMAP, TOS_NODE_ID);
-        
-        //get neighbors to Node
-        for(i  =0; i < call NeighborList.size(); i++){
-            //neighbor Neighbor = call NeighborList.get(i);
-            //lspCostList[Neighbor.Node] = 1;
-            //dbg(ROUTING_CHANNEL,"LSPCOSTLIST: Cost to Neighbor %d: %d\n", Neighbor.Node,lspCostList[Neighbor.Node]);
-            //put into overall mapping
-            //lspMAP[TOS_NODE_ID].cost[Neighbor.Node] = 1;
-            dbg(ROUTING_CHANNEL, "Printing neighbor: %d cost: %d\n",Neighbor.Node, lspMAP[TOS_NODE_ID].cost[Neighbor.Node]);
-        }
-
-       // send lspPacket to neighbors 
-       if(!call NeighborList.isEmpty()){
-           //lspSeqNum++;
-       //dbg(ROUTING_CHANNEL, "Sending LSP: SeqNum: %d\n", lspSeqNum);
-       //makePack(&sendPackage, TOS_NODE_ID, AM_BROADCAST_ADDR,20, PROTOCOL_LINKSTATE, 0, (uint8_t *) lspCostList, 20);
-       //call Sender.send(sendPackage,AM_BROADCAST_ADDR);
-       }else{
-          // dbg(ROUTING_CHANNEL,"No neighbors so cant create LSP\n");
-       }
-       
-       
-
-    }
+    
     
     
     bool checkSeenLspPacks(pack Packet){
