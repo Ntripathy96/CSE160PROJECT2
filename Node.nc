@@ -491,7 +491,7 @@ implementation{
 		uint16_t dest;
 		int i;
 		uint8_t lspCostList[20] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};	
-		lspMapinitialize(&lspMAP,TOS_NODE_ID);
+		lspMapInit(&lspMAP,TOS_NODE_ID);
 		for(i = 0; i < friendList.numValues; i++){
 			if(1/totalAverageEMA[friendList.values[i].src]*10 < 255){
 				lspCostList[friendList.values[i].src] = 1/totalAverageEMA[friendList.values[i].src]*10;
@@ -603,17 +603,17 @@ implementation{
     void lsp2NeighborDiscoveryPacket(){
         int i;
         //initialize cost of every node to TOS_NODE_ID to "infinity"
-        uint8_t lspCostList[20] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}; //CHANGE NAME
+        //uint8_t lspCostList[20] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}; //CHANGE NAME
         //initialize table for this node
-        lspMapInit(&lspMAP, TOS_NODE_ID);
+        //lspMapInit(&lspMAP, TOS_NODE_ID);
         
         //get neighbors to Node
         for(i  =0; i < call NeighborList.size(); i++){
-            neighbor Neighbor = call NeighborList.get(i);
-            lspCostList[Neighbor.Node] = 1;
+            //neighbor Neighbor = call NeighborList.get(i);
+            //lspCostList[Neighbor.Node] = 1;
             //dbg(ROUTING_CHANNEL,"LSPCOSTLIST: Cost to Neighbor %d: %d\n", Neighbor.Node,lspCostList[Neighbor.Node]);
             //put into overall mapping
-            lspMAP[TOS_NODE_ID].cost[Neighbor.Node] = 1;
+            //lspMAP[TOS_NODE_ID].cost[Neighbor.Node] = 1;
             dbg(ROUTING_CHANNEL, "Printing neighbor: %d cost: %d\n",Neighbor.Node, lspMAP[TOS_NODE_ID].cost[Neighbor.Node]);
         }
 
@@ -624,7 +624,7 @@ implementation{
        //makePack(&sendPackage, TOS_NODE_ID, AM_BROADCAST_ADDR,20, PROTOCOL_LINKSTATE, 0, (uint8_t *) lspCostList, 20);
        //call Sender.send(sendPackage,AM_BROADCAST_ADDR);
        }else{
-           dbg(ROUTING_CHANNEL,"No neighbors so cant create LSP\n");
+          // dbg(ROUTING_CHANNEL,"No neighbors so cant create LSP\n");
        }
        
        
