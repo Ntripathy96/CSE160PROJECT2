@@ -12,8 +12,14 @@
 #include "includes/CommandMsg.h"
 #include "includes/sendInfo.h"
 #include "includes/channels.h"
-//#include "includes/list.h"
+#include "includes/list.h"
 #include "includes/lspTable.h"
+#include "includes/arrTimerList.h"
+#include "includes/lspTable.h"
+#include "includes/pair.h"
+//Ping Includes
+#include "includes/pingList.h"
+#include "ping.h"
 
 
 typedef nx_struct neighbor {
@@ -25,9 +31,10 @@ typedef nx_struct neighbor {
 
 module Node{
     uses interface Boot;
-    
+    uses interface Timer<TMilli> as pingTimeoutTimer;
     uses interface Timer<TMilli> as Timer1; //Interface that was wired above.
     uses interface Timer<TMilli> as lspTimer; //link state timer 
+    uses interface Timer<TMilli> as neighborUpdateTimer;
     uses interface Random as Random;
     uses interface SplitControl as AMControl;
     uses interface Receive;
@@ -48,28 +55,47 @@ implementation{
     //int seqNum = 0;
     bool printNodeNeighbors = FALSE;
     bool netChange = FALSE;
+    int totalNodes = 11;
     //int MAX_NODES = 20;
     // Prototypes
     void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t Protocol, uint16_t seq, uint8_t *payload, uint8_t length);
     void printNeighbors();
     void printNeighborList();
-    
+    arrlist Received;
+	arrlist friendList;
     void neighborDiscovery();
     bool checkPacket(pack Packet);
 
     //project 2 START 
     
-    void lspNeighborDiscoveryPacket();
-    lspMap lspMAP[20]; //change NAME, overall map of network stored at every node
-    int lspSeqNum = 0;
-    bool checkSeenLspPacks(pack Packet);
-    lspTable confirmedList;
+    //---- PROJECT 2 VARIABLES -----
+	//We're keeping track of each node with the index. Assume that the index is the name of the node.
+	//note: We need to shift the nodes by 1 so that index 0 is keeping track of node 1. (May be reconsidered)
+	uint16_t linkSequenceNum = 0;
+	lspTable confirmedList;
 	lspTable tentativeList;
-    float cost[20];
+	lspMap lspMAP[20];
+	arrlist lspTracker;
+	float cost[20];
 	int lastSequenceTracker[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-
-    void printlspMap(lspMap *list);
+	float totalAverageEMA[20] =  {0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215};
+    bool isActive = TRUE;
 	
+	int discoveryPacket = AM_BROADCAST_ADDR;
+
+    //Ping/PingReply Variables
+	pingList pings;
+
+    //project 1
+	void arrPrintList(arrlist *list);
+	bool arrListRemove(arrlist *list, uint32_t iTimer);
+	void neighborDiscoveryPacket();
+	task void sendBufferTask();
+	
+	//project 2
+	void printlspMap(lspMap *list);
+	void lspNeighborDiscoveryPacket();
+    void lsp2NeighborDiscoveryPacket();
 	void dijkstra();
 	int forwardPacketTo(lspTable* list, int dest);
 	void printCostList(lspMap *list, uint8_t nodeID);
@@ -77,54 +103,48 @@ implementation{
     //------Project 2-------//END
 
     event void Boot.booted(){
-        call AMControl.start();
-        dbg(GENERAL_CHANNEL, "Booted\n");
-    }
+		call AMControl.start();
+		arrListInit(&Received);
+		dbg(ROUTING_CHANNEL, "Booted\n");
+	}
    
-    event void Timer1.fired()
-    {
-        
-       //if(!netChange){
-           dbg(ROUTING_CHANNEL,"NEIGBOR: Timer1.Time %d\n", call Timer1.getNow());
-            neighborDiscovery();
-            //netChange = TRUE;
-       //}else{
-         //  dbg(ROUTING_CHANNEL,"LSP Timer1.Time %d\n", call Timer1.getNow());
-           // lspNeighborDiscoveryPacket();
-            //netChange = FALSE;
-       //} 
-    }
-    event void lspTimer.fired(){
-        //if(!call Timer1.isRunning()){
-          //if(netChange) lspNeighborDiscoveryPacket(); //change name
-           
-        //}else
-            //check if time gets too great
-            //if(call Timer1.getNow() >= (2*1000)){
-            dbg(ROUTING_CHANNEL,"lspTimer1.Time %d\n", call lspTimer.getNow());
-            lspNeighborDiscoveryPacket();
-            //call Timer1.stop();
-        //}
-        
-        
-        
-    }
+    event void pingTimeoutTimer.fired(){
+		checkTimes(&pings, call pingTimeoutTimer.getNow());
+	}
+
+	//checks who are the neighbors
+	event void Timer1.fired(){
+		if(isActive)neighborDiscoveryPacket();
+	}
+		
+	//checks if the time is still valid to be in the list
+	event void neighborUpdateTimer.fired(){
+		uint32_t timerCheck = call neighborUpdateTimer.getNow(); //give the node a 50 second margin from the current time.
+			//dbg(NEIGHBOR_CHANNEL, "Checking the neighbor %d \n", timerCheck);
+			if(arrListRemove(&friendList, timerCheck)){
+				//lspNeighborDiscoveryPacket();
+				dbg(NEIGHBOR_CHANNEL, "Removed something \n");
+				arrPrintList(&friendList);
+			}
+		dbg(ROUTING_CHANNEL, "Done checking \n\n");
+	}
+	
+	event void lspTimer.fired(){
+		if(isActive)lspNeighborDiscoveryPacket();
+	}
     
     
-    event void AMControl.startDone(error_t err){
-        if(err == SUCCESS){
-            dbg(GENERAL_CHANNEL, "Radio On\n");
-            //call Timer1.startPeriodic(5333 + (uint16_t)((call Random.rand16())%200));
-            call Timer1.startPeriodic(100000 + (uint16_t)((call Random.rand16())%200));
-            //call Timer1.startPeriodic(100000);
-            //call lspTimer.startPeriodic(5333 + (uint16_t)((call Random.rand16())%200));
-            call lspTimer.startPeriodic(100000 + (uint16_t)((call Random.rand16())%200));
-            //call lspTimer.startPeriodic(100000);
-        }else{
-            //Retry until successful
-            call AMControl.start();
-        }
-    }
+   event void AMControl.startDone(error_t err){
+		if(err == SUCCESS){
+			call pingTimeoutTimer.startPeriodic(PING_TIMER_PERIOD + (uint16_t) ((call Random.rand16())%200));
+			call Timer1.startPeriodic(PING_TIMER_PERIOD + (uint16_t) ((call Random.rand16())%200));
+			call neighborUpdateTimer.startPeriodic(PING_TIMER_PERIOD + (uint16_t)((call Random.rand16())%200));
+			call lspTimer.startPeriodic(PING_TIMER_PERIOD + (uint16_t)((call Random.rand16())%200));
+		}else{
+			//Retry until successful
+			call AMControl.start();
+		}
+	}
     
     event void AMControl.stopDone(error_t err){
     }
@@ -134,6 +154,10 @@ implementation{
          
                 
                 uint16_t size = call NeighborList.size();
+        if(!isActive){
+			dbg(ROUTING_CHANNEL, "The Node is inactive, packet will not be read.\n");
+			return msg;
+		}
                 
 
         if(len==sizeof(pack)){
@@ -163,10 +187,10 @@ implementation{
                     if(checkPacket(sendPackage)){
                        //dbg(FLOODING_CHANNEL,"Dropping Packet from src: %d to dest: %d with seq num:%d\n", myMsg->src,myMsg->dest,myMsg->seq);
                     }else{
-                    //dbg(FLOODING_CHANNEL, "Packet has Arrived to destination! %d -> %d\n ", myMsg->src,myMsg->dest);
+                    
                     dbg(FLOODING_CHANNEL, "Packet has Arrived to destination! %d -> %d seq num: %d\n ", myMsg->src,myMsg->dest, myMsg->seq);
                     dbg(FLOODING_CHANNEL, "Package Payload: %s\n", myMsg->payload);
-                        dbg(FLOODING_CHANNEL, "Sending Ping Reply to %d! \n\n", myMsg->src);
+                    dbg(FLOODING_CHANNEL, "Sending Ping Reply to %d! \n\n", myMsg->src);
 					dbg(ROUTING_CHANNEL,"Running dijkstra\n");
 					dijkstra();
 					dbg(ROUTING_CHANNEL,"END\n\n"); 
@@ -176,8 +200,7 @@ implementation{
                     makePack(&sendPackage, TOS_NODE_ID, myMsg->src, 20,PROTOCOL_PINGREPLY,myMsg->seq,myMsg->payload, PACKET_MAX_PAYLOAD_SIZE);
                     call Sender.send(sendPackage, forwardTo);
                     
-                    //dbg(FLOODING_CHANNEL, "SendPackage: %d\n", sendPackage.seq);
-                    //dbg(FLOODING_CHANNEL, "seqNum: %d\n", seqNum);
+                    
                     }
                 }
                 else //not meant for this node forward to correct nextHop
@@ -228,111 +251,63 @@ implementation{
                 
                 if(myMsg->protocol == PROTOCOL_LINKSTATE){
                     
-                    int j, l;
+                    pair friendListInfo;
+				    uint8_t *tempArray;
+				    int i, j;
+				    int difference; 
                     
-                    if(!checkSeenLspPacks(sendPackage)){ 
-                        //initialize table for src 
-                        lspMapInit(&lspMAP, myMsg->src);
-                        dbg(ROUTING_CHANNEL,"LSP from %d, seqNum: %d\n", myMsg->src, myMsg->seq);
-                            if(myMsg->src == TOS_NODE_ID){
-                                dbg(ROUTING_CHANNEL,"Drop\n");
-                            }else{
-                                for(j = 0; j <20; j++){ //put neigbors and cost node knows
-                                    lspMAP[myMsg->src].cost[j] = myMsg->payload[j];
-                                    if(lspMAP[myMsg->src].cost[j] != 255 || lspMAP[myMsg->src].cost[j] != 0 ){
-                                //dbg(ROUTING_CHANNEL, "%d Neighbor %d, cost: %d\n", myMsg->src, j,lspMAP[myMsg->src].cost[j] );
-                            }
-
-                        }
-                        //if(TOS_NODE_ID == 19){
-                            for(l = 1; l < 20; l++){
-                                for(j = 1; j <20; j++){ //put neigbors and cost node knows
-                                    
-                                    if(lspMAP[l].cost[j] != 255 && lspMAP[l].cost[j] != 0){
-                                        dbg(ROUTING_CHANNEL, "%d Neighbor %d, cost: %d\n",  l,j,lspMAP[l].cost[j] );
-                                    }
-
-                                 }
-                            }
-                        //}
-                            
-
-                        //send packet decreasing TTL 
-                        dbg(ROUTING_CHANNEL,"Moving LSP from source %d forward, seqNum:%d TTL:%d\n" ,myMsg->src, myMsg->seq, myMsg->TTL-1);
-                        makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, myMsg->protocol,myMsg->seq, (uint8_t*) myMsg->payload, 20);
-                        call Sender.send(sendPackage,AM_BROADCAST_ADDR);
-                            }   
-                        
-
-
-                    }else{ //LSPpacket already seen
+                    if(!arrListContains(&lspTracker, myMsg->src, myMsg->seq)){
+							if(arrListSize(&lspTracker) >= 30){
+								dbg(ROUTING_CHANNEL,"Popping front\n");
+								pop_front(&lspTracker);	
+							}
+							temp1.seq = myMsg->seq;
+							temp1.src = myMsg->src;
+							arrListPushBack(&lspTracker,temp1);
+							lspMapInit(&lspMAP,myMsg->src);
+							dbg(ROUTING_CHANNEL,"LINK STATE OF GREATNESS. FLOODING THE NETWORK from %d seq#: %d :< \n", myMsg->src, myMsg->seq);								
+							for(i = 0; i < totalNodes; i++){
+								lspMAP[myMsg->src].cost[i] = myMsg->payload[i];
+								if(myMsg->payload[i] != -1 && myMsg->payload[i] != 0)
+									dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
+							}
+							makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, myMsg->protocol, myMsg->seq, (uint8_t *) myMsg->payload, 20);
+							
+                            Sender.send(sendPackage, AM_BROADCAST_ADDR);
+							
+						}else{ //LSPpacket already seen
                             dbg(ROUTING_CHANNEL,"LSPPacket already recieved from %d\n", myMsg->src);
                     }
                 }else if(myMsg->protocol == PROTOCOL_PINGREPLY){
-                        neighbor Neighbor;
-                                neighbor neighbor_ptr;
-                
-                                int k = 0;
-                                bool FOUND;
-                                //dbg(FLOODING_CHANNEL,"received pingreply from %d\n", myMsg->src);
-                
-                                //dbg(FLOODING_CHANNEL,"%d received from %d\n",TOS_NODE_ID,myMsg->src);
-               
-                
-               
-                
-               
-                
-
-                                FOUND = FALSE; //IF FOUND, we switch to TRUE
-                                size = call NeighborList.size();
-
-                                //increase life of neighbors
-                                for(k = 0; k < call NeighborList.size(); k++) {
-				                    neighbor_ptr = call NeighborList.get(k);
-				                    neighbor_ptr.Life++;
-                                    if(neighbor_ptr.Node == myMsg->src){
-                                        FOUND = TRUE;
-                                        neighbor_ptr.Life = 0;
-                                    }
-			                    }
-
-                        
-                    
-                                if(FOUND){
-                                        dbg(NEIGHBOR_CHANNEL,"Neighbor %d found in list\n", myMsg->src);
-                                        netChange = FALSE;
-                                }else{
-                                        Neighbor.Node = myMsg->src;
-                                        Neighbor.Life = 0;
-                                        call NeighborList.pushfront(Neighbor); //at index 0
-                                        dbg(FLOODING_CHANNEL,"NEW Neighbor: %d and Life %d\n",Neighbor.Node,Neighbor.Life);
-                                        netChange = TRUE; //network change!
-                                        dbg(ROUTING_CHANNEL,"NETWORK CHANGE\n");
-                                        
-                                        
-                                }
-                    
-                    
-                    
-
-                    
-                                //Check if neighbors havent been called or seen in a while, if 5 pings occur and neighbor is not heard from, we drop it
-
-			                    for(k = 0; k < call NeighborList.size(); k++) {
-			        	                neighbor_ptr = call NeighborList.get(k);
-				        
-                        
-				                        if(neighbor_ptr.Life > 5) {
-					                    call NeighborList.remove(k);
-					                    dbg(NEIGHBOR_CHANNEL, "Node %d life has expired dropping from NODE %d list\n", neighbor_ptr.Node, TOS_NODE_ID);
-                                        dbg(ROUTING_CHANNEL, "CHANGE IN TOPOLOGY\n");
-                                        netChange = TRUE;
-					
-					                    //i--;
-					                    //size--;
-				                        }
-			                    }
+                        difference = 0;
+						//The packet drops usually happen in the pingreply section
+						dbg(NEIGHBOR_CHANNEL, "PingReply Received: That's mean :< %d. \n", myMsg->src);
+						dbg(NEIGHBOR_CHANNEL, "Received Ping reply seq#: %d \n", myMsg->seq);
+						if(!arrListContains(&friendList, myMsg->src, myMsg->seq)){
+							friendListInfo.seq = myMsg->seq;
+							friendListInfo.src = myMsg->src;
+							friendListInfo.timer = call neighborDiscoveryTimer.getNow();
+							if(arrListContainsKey(&friendList, myMsg->src)){
+								arrListReplace(&friendList,myMsg->src, myMsg->seq, friendListInfo.timer); //updates the current time of the node
+								dbg(NEIGHBOR_CHANNEL, "---------------Updating my friendList---------------\n\n");
+							}
+							else
+								arrListPushBack(&friendList,friendListInfo);
+							dbg(NEIGHBOR_CHANNEL, "NOT IN THE LIST, ADDING: Adding to my FriendList anyways T_T \n\n");						
+							//project 2 portion
+							if(lastSequenceTracker[myMsg->src] < myMsg->seq){
+								//calculate the cost of the link in here						
+								difference =  myMsg->seq -lastSequenceTracker[myMsg->src];
+								lastSequenceTracker[myMsg->src] = myMsg->seq;
+								if(myMsg->seq <= 1)
+									totalAverageEMA[myMsg->src] = EMA(1.0,1.0,1.0);		
+								else							
+									totalAverageEMA[myMsg->src] = EMA(totalAverageEMA[myMsg->src],1,1/difference);			
+							}
+						}
+						else{
+							dbg(NEIGHBOR_CHANNEL, "Oh you're already in my FriendList? :D");
+						}
                 }else{
                         dbg(ROUTING_CHANNEL, "ERROR\n");
                 }   
@@ -388,7 +363,9 @@ implementation{
         printNeighborList();
     }
     
-    event void CommandHandler.printRouteTable(){}
+    event void CommandHandler.printRouteTable(){
+        dijkstra();
+    }
     
     event void CommandHandler.printLinkState(){}
     
@@ -442,6 +419,93 @@ implementation{
                 return FALSE;
     }
     
+    //---- Project 1 Implementations
+
+	void neighborDiscoveryPacket(){
+		pack discoveryPackage;
+		uint8_t createMsg[PACKET_MAX_PAYLOAD_SIZE];
+		uint16_t dest;
+		memcpy(&createMsg, "", sizeof(PACKET_MAX_PAYLOAD_SIZE));
+		memcpy(&dest, "", sizeof(uint8_t));
+		dbg(NEIGHBOR_CHANNEL, "Sending seq#: %d\n", neighborSequenceNum);
+		makePack(&sendPackage, TOS_NODE_ID, discoveryPacket, MAX_TTL, PROTOCOL_PING, neighborSequenceNum++, (uint8_t *)createMsg,
+				sizeof(createMsg));	
+		dbg(ROUTING_CHANNEL, "Hi, is anyone there? :D \n");
+		Sender.send(sendPackage,AM_BROADCAST_ADDR);
+			
+	}	
+
+	//Checks for the node time out
+	bool arrListRemove(arrlist *list, uint32_t iTimer){
+		uint8_t i;
+		uint8_t j;
+		double timeOut;
+		bool success = FALSE;
+		for(i = 0; i <list->numValues; i++){
+			timeOut = iTimer - list->values[i].timer;
+			if(list->values[i].timer + 50000 < iTimer ){
+				dbg(NEIGHBOR_CHANNEL,"Removing %d from friendList, last seen at time %d. Time removed: %d \n", list->values[i].src, list->values[i].timer, iTimer);	
+				list->values[i] = list->values[list->numValues-1];
+				list->numValues--;
+				i--;
+				success =  TRUE;
+			}
+		}
+		return success;
+	}
+	
+	void arrPrintList(arrlist* list){
+		uint8_t i;
+		for(i = 0; i<list->numValues; i++){
+			dbg(NEIGHBOR_CHANNEL,"I think I am friends with %d and the last time we met was %d \n", list->values[i].src, list->values[i].timer);
+		}	
+	}
+	//---- END OF PROJECT 1 IMPLEMENTATIONS
+
+    //---- PROJECT 2 IMPLEMENTATIONS
+	void printlspMap(lspMap *list){
+		int i,j;
+		for(i = 0; i < totalNodes; i++){
+			for(j = 0; j < totalNodes; j++){
+				if(list[i].cost[j] != 0 && list[i].cost[j] != -1)
+					dbg(ROUTING_CHANNEL, "src: %d  neighbor: %d cost: %d \n", i, j, list[i].cost[j]);
+			}	
+		}
+		dbg(ROUTING_CHANNEL, "END \n\n");
+	}
+	
+	void printCostList(lspMap *list, uint8_t nodeID) {
+		uint8_t i;
+		for(i = 0; i < totalNodes; i++) {
+			dbg(ROUTING_CHANNEL, "From %d To %d Costs %d", nodeID, i, list[nodeID].cost[i]);
+		}
+	}
+
+	void lspNeighborDiscoveryPacket(){
+		uint16_t dest;
+		int i;
+		uint8_t lspCostList[20] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};	
+		lspMapinitialize(&lspMAP,TOS_NODE_ID);
+		for(i = 0; i < friendList.numValues; i++){
+			if(1/totalAverageEMA[friendList.values[i].src]*10 < 255){
+				lspCostList[friendList.values[i].src] = 1/totalAverageEMA[friendList.values[i].src]*10;
+				dbg(ROUTING_CHANNEL, "Cost to %d is %d %f %f\n", friendList.values[i].src, lspCostList[friendList.values[i].src], 1/totalAverageEMA[friendList.values[i].src]*10,totalAverageEMA[friendList.values[i].src]);
+				//puts the neighbor into the MAP
+				lspMAP[TOS_NODE_ID].cost[friendList.values[i].src] = 1/totalAverageEMA[friendList.values[i].src]*10;
+				dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
+			}
+			else
+				dbg(ROUTING_CHANNEL, "Cost is too big, %d is not my neighbor yet. \n", friendList.values[i].src);
+		}
+		memcpy(&dest, "", sizeof(uint8_t));	
+		makePack(&sendPackage, TOS_NODE_ID, discoveryPacket, MAX_TTL, PROTOCOL_LINKSTATE, linkSequenceNum++, (uint8_t *)lspCostList, 20);	
+		
+        Sender.send(sendPackage,AM_BROADCAST_ADDR);
+		
+		dbg(ROUTING_CHANNEL, "Sending LSPs EVERYWHERE \n");	
+		dbg(ROUTING_CHANNEL, "END \n\n");
+	}	
+		
     void neighborDiscovery(){
         
     
@@ -486,9 +550,51 @@ implementation{
         }
         
     }
+    void dijkstra(){
+		int i;	
+		lspTuple lspTup, temp;
+		lspTableinit(&tentativeList); lspTableinit(&confirmedList);
+		dbg(ROUTING_CHANNEL,"start of dijkstra \n");
+		lspTablePushBack(&tentativeList, temp = (lspTuple){TOS_NODE_ID,0,TOS_NODE_ID});
+		dbg(ROUTING_CHANNEL,"PushBack from tentativeList dest:%d cost:%d nextHop:%d \n", temp.dest, temp.nodeNcost, temp.nextHop);
+		while(!lspTableIsEmpty(&tentativeList)){
+			if(!lspTableContains(&confirmedList,lspTup = lspTupleRemoveMinCost(&tentativeList))) //gets the minCost node from the tentative and removes it, then checks if it's in the confirmed list.
+				if(lspTablePushBack(&confirmedList,lspTup))
+					dbg(ROUTING_CHANNEL,"PushBack from confirmedList dest:%d cost:%d nextHop:%d \n", lspTup.dest,lspTup.nodeNcost, lspTup.nextHop);
+			for(i = 1; i < 20; i++){
+				temp = (lspTuple){i,lspMAP[lspTup.dest].cost[i]+lspTup.nodeNcost,(lspTup.nextHop == TOS_NODE_ID)?i:lspTup.nextHop};
+				if(!lspTableContainsDest(&confirmedList, i) && lspMAP[lspTup.dest].cost[i] != 255 && lspMAP[i].cost[lspTup.dest] != 255 && lspTupleReplace(&tentativeList,temp,temp.nodeNcost))
+						dbg(ROUTING_CHANNEL,"Replace from tentativeList dest:%d cost:%d nextHop:%d\n", temp.dest, temp.nodeNcost, temp.nextHop);
+				else if(!lspTableContainsDest(&confirmedList, i) && lspMAP[lspTup.dest].cost[i] != 255 && lspMAP[i].cost[lspTup.dest] != 255 && lspTablePushBack(&tentativeList, temp))
+						dbg(ROUTING_CHANNEL,"PushBack from tentativeList dest:%d cost:%d nextHop:%d \n", temp.dest, temp.nodeNcost, temp.nextHop);
+			}
+		}
+		dbg(ROUTING_CHANNEL, "Printing the ROUTING_CHANNEL table! \n");
+		for(i = 0; i < confirmedList.numValues; i++)
+			dbg(ROUTING_CHANNEL, "dest:%d cost:%d nextHop:%d \n",confirmedList.lspTuples[i].dest,confirmedList.lspTuples[i].nodeNcost,confirmedList.lspTuples[i].nextHop);
+		dbg(ROUTING_CHANNEL, "End of dijkstra! \n");
+	}
+
+	int forwardPacketTo(lspTable* list, int dest){	
+		return lspTableLookUp(list,dest);
+	}
+	
+	
+	/**
+	 * let S_1 = Y_1
+	 * Exponential Moving Average
+	 * S_t = alpha*Y_t + (1-alpha)*S_(t-1)
+	 */	
+	float EMA(float prevEMA, float now,float weight){
+		float alpha = 0.5*weight;
+		float averageEMA = alpha*now + (1-alpha)*prevEMA;
+		return averageEMA;
+	}
+
+
     
     
-    void lspNeighborDiscoveryPacket(){
+    void lsp2NeighborDiscoveryPacket(){
         int i;
         //initialize cost of every node to TOS_NODE_ID to "infinity"
         uint8_t lspCostList[20] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}; //CHANGE NAME
@@ -558,64 +664,10 @@ implementation{
                 return FALSE;
     }
     
-    void dijkstra(){
-		int i;	
-		lspTuple lspTup, temp;
-		lspTableinit(&tentativeList); lspTableinit(&confirmedList);
-		dbg(ROUTING_CHANNEL,"start of dijkstra \n");
-		lspTablePushBack(&tentativeList, temp = (lspTuple){TOS_NODE_ID,0,TOS_NODE_ID});
-		dbg(ROUTING_CHANNEL,"PushBack from tentativeList dest:%d cost:%d nextHop:%d \n", temp.dest, temp.nodeNcost, temp.nextHop);
-		while(!lspTableIsEmpty(&tentativeList)){
-			if(!lspTableContains(&confirmedList,lspTup = lspTupleRemoveMinCost(&tentativeList))) //gets the minCost node from the tentative and removes it, then checks if it's in the confirmed list.
-				if(lspTablePushBack(&confirmedList,lspTup))
-					dbg(ROUTING_CHANNEL,"PushBack from confirmedList dest:%d cost:%d nextHop:%d \n", lspTup.dest,lspTup.nodeNcost, lspTup.nextHop);
-			for(i = 1; i < 20; i++){
-				temp = (lspTuple){i,lspMAP[lspTup.dest].cost[i]+lspTup.nodeNcost,(lspTup.nextHop == TOS_NODE_ID)?i:lspTup.nextHop};
-				if(!lspTableContainsDest(&confirmedList, i) && lspMAP[lspTup.dest].cost[i] != 255 && lspMAP[i].cost[lspTup.dest] != 255 && lspTupleReplace(&tentativeList,temp,temp.nodeNcost))
-						dbg(ROUTING_CHANNEL,"Replace from tentativeList dest:%d cost:%d nextHop:%d\n", temp.dest, temp.nodeNcost, temp.nextHop);
-				else if(!lspTableContainsDest(&confirmedList, i) && lspMAP[lspTup.dest].cost[i] != 255 && lspMAP[i].cost[lspTup.dest] != 255 && lspTablePushBack(&tentativeList, temp))
-						dbg(ROUTING_CHANNEL,"PushBack from tentativeList dest:%d cost:%d nextHop:%d \n", temp.dest, temp.nodeNcost, temp.nextHop);
-			}
-		}
-		dbg(ROUTING_CHANNEL, "Printing the ROUTING_CHANNEL table! \n");
-		for(i = 0; i < confirmedList.numValues; i++)
-			dbg(ROUTING_CHANNEL, "dest:%d cost:%d nextHop:%d \n",confirmedList.lspTuples[i].dest,confirmedList.lspTuples[i].nodeNcost,confirmedList.lspTuples[i].nextHop);
-		dbg(ROUTING_CHANNEL, "End of dijkstra! \n");
-	}
+    
 
-	int forwardPacketTo(lspTable* list, int dest){	
-		return lspTableLookUp(list,dest);
-	}
+    
 	
 	
-	/**
-	 * let S_1 = Y_1
-	 * Exponential Moving Average
-	 * S_t = alpha*Y_t + (1-alpha)*S_(t-1)
-	 */	
-	float EMA(float prevEMA, float now,float weight){
-		float alpha = 0.5*weight;
-		float averageEMA = alpha*now + (1-alpha)*prevEMA;
-		return averageEMA;
-	}
-
-
-    void printlspMap(lspMap *list){
-		int i,j;
-		for(i = 0; i < 20; i++){
-			for(j = 0; j < 20; j++){
-				if(list[i].cost[j] != 0 && list[i].cost[j] != 255)
-					dbg(ROUTING_CHANNEL, "src: %d  neighbor: %d cost: %d \n", i, j, list[i].cost[j]);
-			}	
-		}
-		dbg(ROUTING_CHANNEL, "END \n\n");
-	}
-	
-	void printCostList(lspMap *list, uint8_t nodeID) {
-		uint8_t i;
-		for(i = 0; i < 20; i++) {
-			dbg(ROUTING_CHANNEL, "From %d To %d Costs %d", nodeID, i, list[nodeID].cost[i]);
-		}
-	}
     
 }
