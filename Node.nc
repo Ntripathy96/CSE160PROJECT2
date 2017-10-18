@@ -271,7 +271,7 @@ implementation{
 							temp1.src = myMsg->src;
 							arrListPushBack(&lspTracker,temp1);
 							lspMapInit(&lspMAP,myMsg->src);
-							dbg(ROUTING_CHANNEL,"LINK STATE PACKET from %d seq#: %d  \n", myMsg->src, myMsg->seq);								
+							//dbg(ROUTING_CHANNEL,"LINK STATE PACKET from %d seq#: %d  \n", myMsg->src, myMsg->seq);								
 							for(i = 0; i < totalNodes; i++){
 								lspMAP[myMsg->src].cost[i] = myMsg->payload[i];
 								if(myMsg->payload[i] != -1 && myMsg->payload[i] != 255){
@@ -317,7 +317,7 @@ implementation{
 							}
 						}
 						else{
-							dbg(NEIGHBOR_CHANNEL, "Already in Neigborlist\n");
+							//dbg(NEIGHBOR_CHANNEL, "Already in Neigborlist\n");
 						}
                 }else{
                         dbg(ROUTING_CHANNEL, "ERROR\n");
@@ -518,7 +518,7 @@ implementation{
 		
         call Sender.send(sendPackage,AM_BROADCAST_ADDR);
 		
-		dbg(ROUTING_CHANNEL, "Sending LSP \n");	
+		//dbg(ROUTING_CHANNEL, "Sending LSP \n");	
 		//dbg(ROUTING_CHANNEL, "END\n");
 	}	
 		
