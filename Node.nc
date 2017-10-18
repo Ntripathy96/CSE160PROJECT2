@@ -54,6 +54,7 @@ implementation{
     pack sendPackage;
     //int seqNum = 0;
     bool printNodeNeighbors = FALSE;
+    uint16_t neighborSequenceNum = 0;
     bool netChange = FALSE;
     int totalNodes = 11;
     //int MAX_NODES = 20;
@@ -163,7 +164,11 @@ implementation{
         if(len==sizeof(pack)){
             pack* myMsg=(pack*) payload;
             //dbg(GENERAL_CHANNEL, "Packet received from %d\n",myMsg->src);
-            
+            pair temp1;
+			pair temp2;
+            pair temporary;
+            uint8_t srcPort, destPort, destAddr;
+            bool derping;
             //dbg(FLOODING_CHANNEL, "Packet being flooded to %d\n",myMsg->dest);
             
             
@@ -247,14 +252,15 @@ implementation{
                 }
             }
             else if (myMsg->dest == AM_BROADCAST_ADDR) //neigbor discovery OR LSP
-            {
-                
-                if(myMsg->protocol == PROTOCOL_LINKSTATE){
-                    
+            {   
                     pair friendListInfo;
 				    uint8_t *tempArray;
 				    int i, j;
 				    int difference; 
+                
+                if(myMsg->protocol == PROTOCOL_LINKSTATE){
+                    
+                   
                     
                     if(!arrListContains(&lspTracker, myMsg->src, myMsg->seq)){
 							if(arrListSize(&lspTracker) >= 30){
@@ -286,7 +292,7 @@ implementation{
 						if(!arrListContains(&friendList, myMsg->src, myMsg->seq)){
 							friendListInfo.seq = myMsg->seq;
 							friendListInfo.src = myMsg->src;
-							friendListInfo.timer = call neighborDiscoveryTimer.getNow();
+							friendListInfo.timer = call Timer1.getNow();
 							if(arrListContainsKey(&friendList, myMsg->src)){
 								arrListReplace(&friendList,myMsg->src, myMsg->seq, friendListInfo.timer); //updates the current time of the node
 								dbg(NEIGHBOR_CHANNEL, "---------------Updating my friendList---------------\n\n");
@@ -613,10 +619,10 @@ implementation{
 
        // send lspPacket to neighbors 
        if(!call NeighborList.isEmpty()){
-           lspSeqNum++;
+           //lspSeqNum++;
        dbg(ROUTING_CHANNEL, "Sending LSP: SeqNum: %d\n", lspSeqNum);
-       makePack(&sendPackage, TOS_NODE_ID, AM_BROADCAST_ADDR,20, PROTOCOL_LINKSTATE, lspSeqNum, (uint8_t *) lspCostList, 20);
-       call Sender.send(sendPackage,AM_BROADCAST_ADDR);
+       //makePack(&sendPackage, TOS_NODE_ID, AM_BROADCAST_ADDR,20, PROTOCOL_LINKSTATE, 0, (uint8_t *) lspCostList, 20);
+       //call Sender.send(sendPackage,AM_BROADCAST_ADDR);
        }else{
            dbg(ROUTING_CHANNEL,"No neighbors so cant create LSP\n");
        }
