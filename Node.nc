@@ -90,7 +90,7 @@ implementation{
 	void arrPrintList(arrlist *list);
 	bool arrListRemove(arrlist *list, uint32_t iTimer);
 	void neighborDiscoveryPacket();
-	task void sendBufferTask();
+	
 	
 	//project 2
 	void printlspMap(lspMap *list);
