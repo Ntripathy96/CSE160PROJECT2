@@ -501,10 +501,11 @@ implementation{
 
 	void lspNeighborDiscoveryPacket(){
 		uint16_t dest;
-        dbg(ROUTING_CHANNEL, "HELLO %d\n", TOS_NODE_ID);
+        
 		int i;
 		uint8_t lspCostList[20] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};	
 		lspMapInit(&lspMAP,TOS_NODE_ID);
+        dbg(ROUTING_CHANNEL, "HELLO %d\n", TOS_NODE_ID);
 		for(i = 0; i < friendList.numValues; i++){
 			//if(1/totalAverageEMA[friendList.values[i].src]*10 < 255){
               //if(!arrListIsEmpty(&friendList)){  
