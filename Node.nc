@@ -277,6 +277,9 @@ implementation{
 								if(myMsg->payload[i] != -1 && myMsg->payload[i] != 0)
 									dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
 							}
+                            if(TOS_NODE_ID == 7){
+                                printlspMap(lspMAP);
+                            }
 							makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, myMsg->protocol, myMsg->seq, (uint8_t *) myMsg->payload, 20);
 							
                             call Sender.send(sendPackage, AM_BROADCAST_ADDR);
