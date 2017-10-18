@@ -124,10 +124,10 @@ implementation{
 			//dbg(NEIGHBOR_CHANNEL, "Checking the neighbor %d \n", timerCheck);
 			if(arrListRemove(&friendList, timerCheck)){
 				//lspNeighborDiscoveryPacket();
-				dbg(NEIGHBOR_CHANNEL, "Removed something \n");
+				//dbg(NEIGHBOR_CHANNEL, "Removed something \n");
 				arrPrintList(&friendList);
 			}
-		dbg(ROUTING_CHANNEL, "Done checking \n\n");
+		//dbg(ROUTING_CHANNEL, "Done checking \n\n");
 	}
 	
 	event void lspTimer.fired(){
