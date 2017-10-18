@@ -274,8 +274,10 @@ implementation{
 							dbg(ROUTING_CHANNEL,"LINK STATE PACKET from %d seq#: %d  \n", myMsg->src, myMsg->seq);								
 							for(i = 0; i < totalNodes; i++){
 								lspMAP[myMsg->src].cost[i] = myMsg->payload[i];
-								if(myMsg->payload[i] != -1 && myMsg->payload[i] != 255)
-									dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
+								if(myMsg->payload[i] != -1 && myMsg->payload[i] != 255){
+                                    //dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
+                                }
+									
 							}
                             //if(TOS_NODE_ID == 7){
                                 //printlspMap(lspMAP);
@@ -291,7 +293,7 @@ implementation{
                         difference = 0;
 						
 						
-						dbg(NEIGHBOR_CHANNEL, "Received Neighbor reply from %d seq#: %d \n", myMsg->src, myMsg->seq);
+						//dbg(NEIGHBOR_CHANNEL, "Received Neighbor reply from %d seq#: %d \n", myMsg->src, myMsg->seq);
 						if(!arrListContains(&friendList, myMsg->src, myMsg->seq)){
 							friendListInfo.seq = myMsg->seq;
 							friendListInfo.src = myMsg->src;
@@ -439,10 +441,10 @@ implementation{
 		uint16_t dest;
 		memcpy(&createMsg, "", sizeof(PACKET_MAX_PAYLOAD_SIZE));
 		memcpy(&dest, "", sizeof(uint8_t));
-		dbg(NEIGHBOR_CHANNEL, "Sending seq#: %d\n", neighborSequenceNum);
+		//dbg(NEIGHBOR_CHANNEL, "Sending seq#: %d\n", neighborSequenceNum);
 		makePack(&sendPackage, TOS_NODE_ID, discoveryPacket, 20, PROTOCOL_PINGREPLY, neighborSequenceNum++, (uint8_t *)createMsg,
 				sizeof(createMsg));	
-		dbg(ROUTING_CHANNEL, "NeighborDiscovery for %d\n", TOS_NODE_ID);
+		//dbg(ROUTING_CHANNEL, "NeighborDiscovery for %d\n", TOS_NODE_ID);
 		call Sender.send(sendPackage,AM_BROADCAST_ADDR);
 			
 	}	
@@ -506,8 +508,10 @@ implementation{
 				lspMAP[TOS_NODE_ID].cost[friendList.values[i].src] = 1/totalAverageEMA[friendList.values[i].src]*10;
 				//dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
 			}
-			else
-				dbg(ROUTING_CHANNEL, "Not my neighbor yet. \n", friendList.values[i].src);
+			else{
+                //dbg(ROUTING_CHANNEL, "Not my neighbor yet. \n", friendList.values[i].src);
+            }
+				
 		}
 		memcpy(&dest, "", sizeof(uint8_t));	
 		makePack(&sendPackage, TOS_NODE_ID, discoveryPacket, MAX_TTL, PROTOCOL_LINKSTATE, linkSequenceNum++, (uint8_t *)lspCostList, 20);	
@@ -523,7 +527,7 @@ implementation{
     
         char* dummyMsg = "NULL\n";
 
-       dbg(NEIGHBOR_CHANNEL, "Neighbor Discovery: checking node %d list for its neighbors\n", TOS_NODE_ID);
+       //dbg(NEIGHBOR_CHANNEL, "Neighbor Discovery: checking node %d list for its neighbors\n", TOS_NODE_ID);
 		
 			
 		
