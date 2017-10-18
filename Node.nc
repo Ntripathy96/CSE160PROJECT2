@@ -476,7 +476,7 @@ implementation{
 		int i,j;
 		for(i = 0; i < totalNodes; i++){
 			for(j = 0; j < totalNodes; j++){
-				if(list[i].cost[j] != 0 && list[i].cost[j] != -1)
+				if(list[i].cost[j] != 255 && list[i].cost[j] != -1)
 					dbg(ROUTING_CHANNEL, "src: %d  neighbor: %d cost: %d \n", i, j, list[i].cost[j]);
 			}	
 		}
