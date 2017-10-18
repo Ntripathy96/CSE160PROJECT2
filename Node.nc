@@ -264,7 +264,7 @@ implementation{
                     
                     if(!arrListContains(&lspTracker, myMsg->src, myMsg->seq)){
 							if(arrListSize(&lspTracker) >= 30){
-								dbg(ROUTING_CHANNEL,"Popping front\n");
+								//dbg(ROUTING_CHANNEL,"Popping front\n");
 								pop_front(&lspTracker);	
 							}
 							temp1.seq = myMsg->seq;
@@ -275,11 +275,11 @@ implementation{
 							for(i = 0; i < totalNodes; i++){
 								lspMAP[myMsg->src].cost[i] = myMsg->payload[i];
 								if(myMsg->payload[i] != -1 && myMsg->payload[i] != 255)
-									dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
+									//dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
 							}
-                            if(TOS_NODE_ID == 7){
+                            //if(TOS_NODE_ID == 7){
                                 printlspMap(lspMAP);
-                            }
+                            //}
 							makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, myMsg->protocol, myMsg->seq, (uint8_t *) myMsg->payload, 20);
 							
                             call Sender.send(sendPackage, AM_BROADCAST_ADDR);
@@ -298,11 +298,11 @@ implementation{
 							friendListInfo.timer = call Timer1.getNow();
 							if(arrListContainsKey(&friendList, myMsg->src)){
 								arrListReplace(&friendList,myMsg->src, myMsg->seq, friendListInfo.timer); //updates the current time of the node
-								dbg(NEIGHBOR_CHANNEL, "---------------Updating my friendList---------------\n\n");
+								dbg(NEIGHBOR_CHANNEL, "---------------Updating NeighborList---------------\n\n");
 							}
 							else
 								arrListPushBack(&friendList,friendListInfo);
-							dbg(NEIGHBOR_CHANNEL, "NOT IN THE LIST, ADDING: Adding to my FriendList anyways T_T \n\n");						
+							//dbg(NEIGHBOR_CHANNEL, "NOT IN NEIGHBOR LIST, ADDING\n\n");						
 							//project 2 portion
 							if(lastSequenceTracker[myMsg->src] < myMsg->seq){
 								//calculate the cost of the link in here						
@@ -315,7 +315,7 @@ implementation{
 							}
 						}
 						else{
-							dbg(NEIGHBOR_CHANNEL, "Oh you're already in my FriendList? :D");
+							dbg(NEIGHBOR_CHANNEL, "Already in Neigborlist\n");
 						}
                 }else{
                         dbg(ROUTING_CHANNEL, "ERROR\n");
@@ -353,6 +353,7 @@ implementation{
     
     event void CommandHandler.ping(uint16_t destination, uint8_t *payload){
         int forwardTo;
+        dbg(GENERAL_CHANNEL, "\n\n\n\n\n\n\n\n\n\n\n\n");
         dbg(GENERAL_CHANNEL, "PING EVENT \n");
         
         makePack(&sendPackage, TOS_NODE_ID, destination, 20, PROTOCOL_PING, seqNum, payload, PACKET_MAX_PAYLOAD_SIZE);
@@ -439,7 +440,7 @@ implementation{
 		dbg(NEIGHBOR_CHANNEL, "Sending seq#: %d\n", neighborSequenceNum);
 		makePack(&sendPackage, TOS_NODE_ID, discoveryPacket, 20, PROTOCOL_PINGREPLY, neighborSequenceNum++, (uint8_t *)createMsg,
 				sizeof(createMsg));	
-		dbg(ROUTING_CHANNEL, "Hi, is anyone there? :D \n");
+		dbg(ROUTING_CHANNEL, "NeighborDiscovery for %d\n", TOS_NODE_ID);
 		call Sender.send(sendPackage,AM_BROADCAST_ADDR);
 			
 	}	
@@ -453,7 +454,7 @@ implementation{
 		for(i = 0; i <list->numValues; i++){
 			timeOut = iTimer - list->values[i].timer;
 			if(list->values[i].timer + 50000 < iTimer ){
-				dbg(NEIGHBOR_CHANNEL,"Removing %d from friendList, last seen at time %d. Time removed: %d \n", list->values[i].src, list->values[i].timer, iTimer);	
+				dbg(NEIGHBOR_CHANNEL,"Removing %d from NeighborList, last seen at time %d. Time removed: %d \n", list->values[i].src, list->values[i].timer, iTimer);	
 				list->values[i] = list->values[list->numValues-1];
 				list->numValues--;
 				i--;
@@ -466,7 +467,7 @@ implementation{
 	void arrPrintList(arrlist* list){
 		uint8_t i;
 		for(i = 0; i<list->numValues; i++){
-			dbg(NEIGHBOR_CHANNEL,"I think I am friends with %d and the last time we met was %d \n", list->values[i].src, list->values[i].timer);
+			dbg(NEIGHBOR_CHANNEL,"NEIGHBOR: %d last time:%d \n", list->values[i].src, list->values[i].timer);
 		}	
 	}
 	//---- END OF PROJECT 1 IMPLEMENTATIONS
@@ -486,7 +487,7 @@ implementation{
 	void printCostList(lspMap *list, uint8_t nodeID) {
 		uint8_t i;
 		for(i = 0; i < totalNodes; i++) {
-			dbg(ROUTING_CHANNEL, "From %d To %d Costs %d", nodeID, i, list[nodeID].cost[i]);
+			//dbg(ROUTING_CHANNEL, "From %d To %d Costs %d", nodeID, i, list[nodeID].cost[i]);
 		}
 	}
 
@@ -498,10 +499,10 @@ implementation{
 		for(i = 0; i < friendList.numValues; i++){
 			if(1/totalAverageEMA[friendList.values[i].src]*10 < 255){
 				lspCostList[friendList.values[i].src] = 1/totalAverageEMA[friendList.values[i].src]*10;
-				dbg(ROUTING_CHANNEL, "Cost to %d is %d %f %f\n", friendList.values[i].src, lspCostList[friendList.values[i].src], 1/totalAverageEMA[friendList.values[i].src]*10,totalAverageEMA[friendList.values[i].src]);
+				//dbg(ROUTING_CHANNEL, "Cost to %d is %d %f %f\n", friendList.values[i].src, lspCostList[friendList.values[i].src], 1/totalAverageEMA[friendList.values[i].src]*10,totalAverageEMA[friendList.values[i].src]);
 				//puts the neighbor into the MAP
 				lspMAP[TOS_NODE_ID].cost[friendList.values[i].src] = 1/totalAverageEMA[friendList.values[i].src]*10;
-				dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
+				//dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
 			}
 			else
 				dbg(ROUTING_CHANNEL, "Cost is too big, %d is not my neighbor yet. \n", friendList.values[i].src);
