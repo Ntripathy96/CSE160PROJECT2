@@ -115,7 +115,7 @@ implementation{
 
 	//checks who are the neighbors
 	event void Timer1.fired(){
-		if(isActive && neighborSequenceNum < 10)neighborDiscoveryPacket();
+		if(isActive && neighborSequenceNum < 2)neighborDiscoveryPacket();
 	}
 		
 	//checks if the time is still valid to be in the list
@@ -201,7 +201,7 @@ implementation{
 					dbg(ROUTING_CHANNEL,"END\n\n"); 
 					forwardTo = forwardPacketTo(&confirmedList,myMsg->src);
                     
-                    dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d \n", forwardTo, TOS_NODE_ID);
+                    dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d to destination: %d\n", forwardTo, TOS_NODE_ID, myMsg->src);
                     makePack(&sendPackage, TOS_NODE_ID, myMsg->src, 20,PROTOCOL_PINGREPLY,myMsg->seq,myMsg->payload, PACKET_MAX_PAYLOAD_SIZE);
                     call Sender.send(sendPackage, forwardTo);
                     
@@ -338,12 +338,12 @@ implementation{
                        //dbg(FLOODING_CHANNEL,"Dropping Packet from src: %d to dest: %d with seq num:%d\n", myMsg->src,myMsg->dest,myMsg->seq);
                         }
                   }else{
-                      dbg(FLOODING_CHANNEL, "Sending Ping Reply to %d! \n\n", myMsg->src);
+                      //dbg(FLOODING_CHANNEL, "Forwarding Ping Reply to %d! \n\n", myMsg->dest);
 					dbg(ROUTING_CHANNEL,"Running dijkstra\n");
 					dijkstra();
 					dbg(ROUTING_CHANNEL,"END\n\n"); 
-					forwardTo = forwardPacketTo(&confirmedList,myMsg->src);
-                    dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d \n", forwardTo, TOS_NODE_ID);
+					forwardTo = forwardPacketTo(&confirmedList,myMsg->dest);
+                    dbg(ROUTING_CHANNEL,"Forwarding Ping Reply to %d and src is %d to dest: %d\n", forwardTo, myMsg->src, myMsg->dest);
                         makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL - 1,PROTOCOL_PINGREPLY,myMsg->seq,myMsg->payload, PACKET_MAX_PAYLOAD_SIZE);
                         call Sender.send(sendPackage, forwardTo);
                   }
