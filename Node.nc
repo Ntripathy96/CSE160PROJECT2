@@ -300,7 +300,7 @@ implementation{
 							friendListInfo.timer = call Timer1.getNow();
 							if(arrListContainsKey(&friendList, myMsg->src)){
 								arrListReplace(&friendList,myMsg->src, myMsg->seq, friendListInfo.timer); //updates the current time of the node
-								dbg(NEIGHBOR_CHANNEL, "Updating NeighborList................\n\n");
+								//dbg(NEIGHBOR_CHANNEL, "Updating NeighborList................\n\n");
 							}
 							else
 								arrListPushBack(&friendList,friendListInfo);
@@ -458,7 +458,7 @@ implementation{
 		for(i = 0; i <list->numValues; i++){
 			timeOut = iTimer - list->values[i].timer;
 			if(list->values[i].timer + 50000 < iTimer ){
-				dbg(NEIGHBOR_CHANNEL,"Removing %d from NeighborList, last seen at time %d. Time removed: %d \n", list->values[i].src, list->values[i].timer, iTimer);	
+				//dbg(NEIGHBOR_CHANNEL,"Removing %d from NeighborList, last seen at time %d. Time removed: %d \n", list->values[i].src, list->values[i].timer, iTimer);	
 				list->values[i] = list->values[list->numValues-1];
 				list->numValues--;
 				i--;
@@ -471,7 +471,7 @@ implementation{
 	void arrPrintList(arrlist* list){
 		uint8_t i;
 		for(i = 0; i<list->numValues; i++){
-			dbg(NEIGHBOR_CHANNEL,"NEIGHBOR: %d last time:%d \n", list->values[i].src, list->values[i].timer);
+			//dbg(NEIGHBOR_CHANNEL,"NEIGHBOR: %d last time:%d \n", list->values[i].src, list->values[i].timer);
 		}	
 	}
 	//---- END OF PROJECT 1 IMPLEMENTATIONS
