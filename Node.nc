@@ -274,7 +274,7 @@ implementation{
 							dbg(ROUTING_CHANNEL,"LINK STATE OF GREATNESS. FLOODING THE NETWORK from %d seq#: %d :< \n", myMsg->src, myMsg->seq);								
 							for(i = 0; i < totalNodes; i++){
 								lspMAP[myMsg->src].cost[i] = myMsg->payload[i];
-								if(myMsg->payload[i] != -1 && myMsg->payload[i] != 0)
+								if(myMsg->payload[i] != -1 && myMsg->payload[i] != 255)
 									dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
 							}
 							makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, myMsg->protocol, myMsg->seq, (uint8_t *) myMsg->payload, 20);
@@ -494,10 +494,10 @@ implementation{
 		lspMapInit(&lspMAP,TOS_NODE_ID);
 		for(i = 0; i < friendList.numValues; i++){
 			if(1/totalAverageEMA[friendList.values[i].src]*10 < 255){
-				lspCostList[friendList.values[i].src] = 1/totalAverageEMA[friendList.values[i].src]*10;
+				lspCostList[friendList.values[i].src] = 1;
 				dbg(ROUTING_CHANNEL, "Cost to %d is %d %f %f\n", friendList.values[i].src, lspCostList[friendList.values[i].src], 1/totalAverageEMA[friendList.values[i].src]*10,totalAverageEMA[friendList.values[i].src]);
 				//puts the neighbor into the MAP
-				lspMAP[TOS_NODE_ID].cost[friendList.values[i].src] = 1/totalAverageEMA[friendList.values[i].src]*10;
+				lspMAP[TOS_NODE_ID].cost[friendList.values[i].src] = 1;
 				dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
 			}
 			else
