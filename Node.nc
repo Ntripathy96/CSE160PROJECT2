@@ -512,6 +512,7 @@ implementation{
 				//dbg(ROUTING_CHANNEL, "Cost to %d is %d %f %f\n", friendList.values[i].src, lspCostList[friendList.values[i].src], 1/totalAverageEMA[friendList.values[i].src]*10,totalAverageEMA[friendList.values[i].src]);
 				//puts the neighbor into the MAP
 				lspMAP[TOS_NODE_ID].cost[friendList.values[i].src] = 10;
+                dbg(ROUTING_CHANNEL, "HELLO %d\n", TOS_NODE_ID);
                 if(TOS_NODE_ID == 2){
                     dbg(ROUTING_CHANNEL, "Printing NEIGHBORS: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
                 }
