@@ -131,7 +131,7 @@ implementation{
 	}
 	
 	event void lspTimer.fired(){
-		if(isActive)lspNeighborDiscoveryPacket();
+		if(isActive && linkSequenceNum < 5)lspNeighborDiscoveryPacket();
 	}
     
     
