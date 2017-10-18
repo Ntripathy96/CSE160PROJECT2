@@ -271,16 +271,13 @@ implementation{
 							temp1.src = myMsg->src;
 							arrListPushBack(&lspTracker,temp1);
 							lspMapInit(&lspMAP,myMsg->src);
-                            if(myMsg->src == 2){
-                                dbg(ROUTING_CHANNEL,"LINK STATE PACKET from %d seq#: %d  \n", myMsg->src, myMsg->seq);
-                                for(i = 0; i < totalNodes; i++){
-                                    dbg(ROUTING_CHANNEL,"%d:", myMsg->payload[i]);
-                                }	
-                                dbg(ROUTING_CHANNEL,"\n");							
-                            }
-							//dbg(ROUTING_CHANNEL,"LINK STATE PACKET from %d seq#: %d  \n", myMsg->src, myMsg->seq);								
+                            
+							dbg(ROUTING_CHANNEL,"LINK STATE PACKET from %d seq#: %d  \n", myMsg->src, myMsg->seq);								
 							for(i = 0; i < totalNodes; i++){
 								lspMAP[myMsg->src].cost[i] = myMsg->payload[i];
+                                if(myMsg->src == 2){
+                                    dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
+                                }
 								if(myMsg->payload[i] != -1 && myMsg->payload[i] != 255){
                                     //dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
                                 }
