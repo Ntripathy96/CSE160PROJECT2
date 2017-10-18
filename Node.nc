@@ -271,7 +271,7 @@ implementation{
 							temp1.src = myMsg->src;
 							arrListPushBack(&lspTracker,temp1);
 							lspMapInit(&lspMAP,myMsg->src);
-							dbg(ROUTING_CHANNEL,"LINK STATE. FLOODING THE NETWORK from %d seq#: %d :< \n", myMsg->src, myMsg->seq);								
+							dbg(ROUTING_CHANNEL,"LINK STATE PACKET from %d seq#: %d  \n", myMsg->src, myMsg->seq);								
 							for(i = 0; i < totalNodes; i++){
 								lspMAP[myMsg->src].cost[i] = myMsg->payload[i];
 								if(myMsg->payload[i] != -1 && myMsg->payload[i] != 255)
@@ -477,7 +477,7 @@ implementation{
 		int i,j;
 		for(i = 0; i < totalNodes; i++){
 			for(j = 0; j < totalNodes; j++){
-				if(list[i].cost[j] != 255 && list[i].cost[j] != -1)
+				if(list[i].cost[j] != 255 && list[i].cost[j] != -1 && list[i].cost[j] != 0)
 					dbg(ROUTING_CHANNEL, "src: %d  neighbor: %d cost: %d \n", i, j, list[i].cost[j]);
 			}	
 		}
