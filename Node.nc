@@ -276,7 +276,7 @@ implementation{
 							for(i = 0; i < totalNodes; i++){
 								lspMAP[myMsg->src].cost[i] = myMsg->payload[i];
                                 if(myMsg->src == 2){
-                                    dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
+                                    //dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
                                 }
 								if(myMsg->payload[i] != -1 && myMsg->payload[i] != 255){
                                     //dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
@@ -513,7 +513,7 @@ implementation{
 				//puts the neighbor into the MAP
 				lspMAP[TOS_NODE_ID].cost[friendList.values[i].src] = 10;
                 if(TOS_NODE_ID == 2){
-                    dbg(ROUTING_CHANNEL, "Printing neighbors: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
+                    dbg(ROUTING_CHANNEL, "Printing NEIGHBORS: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
                 }
 				//dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
 			//}
