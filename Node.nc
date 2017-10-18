@@ -138,9 +138,9 @@ implementation{
    event void AMControl.startDone(error_t err){
 		if(err == SUCCESS){
 			call pingTimeoutTimer.startPeriodic(PING_TIMER_PERIOD + (uint16_t) ((call Random.rand16())%200));
-			call Timer1.startPeriodic(PING_TIMER_PERIOD + (uint16_t) ((call Random.rand16())%200));
-			call neighborUpdateTimer.startPeriodic(PING_TIMER_PERIOD + (uint16_t)((call Random.rand16())%200));
-			call lspTimer.startPeriodic(PING_TIMER_PERIOD + (uint16_t)((call Random.rand16())%200));
+			call Timer1.startPeriodic(100000 + (uint16_t) ((call Random.rand16())%200));
+			call neighborUpdateTimer.startPeriodic(100000 + (uint16_t)((call Random.rand16())%200));
+			call lspTimer.startPeriodic(100000 + (uint16_t)((call Random.rand16())%200));
 		}else{
 			//Retry until successful
 			call AMControl.start();
@@ -298,7 +298,7 @@ implementation{
 							friendListInfo.timer = call Timer1.getNow();
 							if(arrListContainsKey(&friendList, myMsg->src)){
 								arrListReplace(&friendList,myMsg->src, myMsg->seq, friendListInfo.timer); //updates the current time of the node
-								dbg(NEIGHBOR_CHANNEL, "---------------Updating NeighborList---------------\n\n");
+								dbg(NEIGHBOR_CHANNEL, "Updating NeighborList................\n\n");
 							}
 							else
 								arrListPushBack(&friendList,friendListInfo);
@@ -505,15 +505,15 @@ implementation{
 				//dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
 			}
 			else
-				dbg(ROUTING_CHANNEL, "Cost is too big, %d is not my neighbor yet. \n", friendList.values[i].src);
+				dbg(ROUTING_CHANNEL, "Not my neighbor yet. \n", friendList.values[i].src);
 		}
 		memcpy(&dest, "", sizeof(uint8_t));	
 		makePack(&sendPackage, TOS_NODE_ID, discoveryPacket, MAX_TTL, PROTOCOL_LINKSTATE, linkSequenceNum++, (uint8_t *)lspCostList, 20);	
 		
         call Sender.send(sendPackage,AM_BROADCAST_ADDR);
 		
-		dbg(ROUTING_CHANNEL, "Sending LSPs EVERYWHERE \n");	
-		dbg(ROUTING_CHANNEL, "END \n\n");
+		dbg(ROUTING_CHANNEL, "Sending LSP \n");	
+		//dbg(ROUTING_CHANNEL, "END\n");
 	}	
 		
     void neighborDiscovery(){
