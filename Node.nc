@@ -204,7 +204,7 @@ implementation{
                     }
                 }
                 else //not meant for this node forward to correct nextHop
-                {   int forwardTo;
+                {   //int forwardTo;
                     makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, PROTOCOL_PING, myMsg->seq, myMsg->payload, PACKET_MAX_PAYLOAD_SIZE);
                     if(checkPacket(sendPackage)){//return true meaning packet found in SeenPackList
                         dbg(FLOODING_CHANNEL,"ALREADY SEEN: Dropping Packet from src: %d to dest: %d with seq num:%d\n", myMsg->src,myMsg->dest,myMsg->seq);
@@ -273,7 +273,7 @@ implementation{
 							}
 							makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, myMsg->protocol, myMsg->seq, (uint8_t *) myMsg->payload, 20);
 							
-                            Sender.send(sendPackage, AM_BROADCAST_ADDR);
+                            call Sender.send(sendPackage, AM_BROADCAST_ADDR);
 							
 						}else{ //LSPpacket already seen
                             dbg(ROUTING_CHANNEL,"LSPPacket already recieved from %d\n", myMsg->src);
@@ -431,7 +431,7 @@ implementation{
 		makePack(&sendPackage, TOS_NODE_ID, discoveryPacket, MAX_TTL, PROTOCOL_PING, neighborSequenceNum++, (uint8_t *)createMsg,
 				sizeof(createMsg));	
 		dbg(ROUTING_CHANNEL, "Hi, is anyone there? :D \n");
-		Sender.send(sendPackage,AM_BROADCAST_ADDR);
+		call Sender.send(sendPackage,AM_BROADCAST_ADDR);
 			
 	}	
 
@@ -500,7 +500,7 @@ implementation{
 		memcpy(&dest, "", sizeof(uint8_t));	
 		makePack(&sendPackage, TOS_NODE_ID, discoveryPacket, MAX_TTL, PROTOCOL_LINKSTATE, linkSequenceNum++, (uint8_t *)lspCostList, 20);	
 		
-        Sender.send(sendPackage,AM_BROADCAST_ADDR);
+        call Sender.send(sendPackage,AM_BROADCAST_ADDR);
 		
 		dbg(ROUTING_CHANNEL, "Sending LSPs EVERYWHERE \n");	
 		dbg(ROUTING_CHANNEL, "END \n\n");
