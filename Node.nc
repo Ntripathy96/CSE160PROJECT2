@@ -289,9 +289,9 @@ implementation{
                     }
                 }else if(myMsg->protocol == PROTOCOL_PINGREPLY){
                         difference = 0;
-						//The packet drops usually happen in the pingreply section
-						dbg(NEIGHBOR_CHANNEL, "PingReply Received: That's mean :< %d. \n", myMsg->src);
-						dbg(NEIGHBOR_CHANNEL, "Received Ping reply seq#: %d \n", myMsg->seq);
+						
+						
+						dbg(NEIGHBOR_CHANNEL, "Received Neighbor reply from %d seq#: %d \n", myMsg->src, myMsg->seq);
 						if(!arrListContains(&friendList, myMsg->src, myMsg->seq)){
 							friendListInfo.seq = myMsg->seq;
 							friendListInfo.src = myMsg->src;
