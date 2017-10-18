@@ -287,7 +287,7 @@ implementation{
                             call Sender.send(sendPackage, AM_BROADCAST_ADDR);
 							
 						}else{ //LSPpacket already seen
-                            dbg(ROUTING_CHANNEL,"LSPPacket already recieved from %d\n", myMsg->src);
+                            //dbg(ROUTING_CHANNEL,"LSPPacket already recieved from %d\n", myMsg->src);
                     }
                 }else if(myMsg->protocol == PROTOCOL_PINGREPLY){
                         difference = 0;
