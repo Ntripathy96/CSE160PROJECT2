@@ -523,7 +523,7 @@ implementation{
                     dbg(ROUTING_CHANNEL, "Printing NEIGHBORS: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
                 }
 				//dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
-			//}
+			}
 			else{
                 //dbg(ROUTING_CHANNEL, "Not my neighbor yet. \n", friendList.values[i].src);
             }
