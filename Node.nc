@@ -274,7 +274,7 @@ implementation{
                             if(myMsg->src == 2){
                                 dbg(ROUTING_CHANNEL,"LINK STATE PACKET from %d seq#: %d  \n", myMsg->src, myMsg->seq);
                                 for(i = 0; i < totalNodes; i++){
-                                    dbg(ROUTING_CHANNEL,"%d:", payload[i]);
+                                    dbg(ROUTING_CHANNEL,"%d:", *payload[i]);
                                 }	
                                 dbg(ROUTING_CHANNEL,"\n");							
                             }
