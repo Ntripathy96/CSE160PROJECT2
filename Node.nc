@@ -505,16 +505,21 @@ implementation{
 		uint8_t lspCostList[20] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};	
 		lspMapInit(&lspMAP,TOS_NODE_ID);
 		for(i = 0; i < friendList.numValues; i++){
-			if(1/totalAverageEMA[friendList.values[i].src]*10 < 255){
-				lspCostList[friendList.values[i].src] = 1/totalAverageEMA[friendList.values[i].src]*10;
+			//if(1/totalAverageEMA[friendList.values[i].src]*10 < 255){
+              //if(!arrListIsEmpty(&friendList)){  
+
+				lspCostList[friendList.values[i].src] = 10;
 				//dbg(ROUTING_CHANNEL, "Cost to %d is %d %f %f\n", friendList.values[i].src, lspCostList[friendList.values[i].src], 1/totalAverageEMA[friendList.values[i].src]*10,totalAverageEMA[friendList.values[i].src]);
 				//puts the neighbor into the MAP
-				lspMAP[TOS_NODE_ID].cost[friendList.values[i].src] = 1/totalAverageEMA[friendList.values[i].src]*10;
+				lspMAP[TOS_NODE_ID].cost[friendList.values[i].src] = 10;
+                if(TOS_NODE_ID == 2){
+                    dbg(ROUTING_CHANNEL, "Printing neighbors: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
+                }
 				//dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
-			}
-			else{
+			//}
+			//else{
                 //dbg(ROUTING_CHANNEL, "Not my neighbor yet. \n", friendList.values[i].src);
-            }
+            //}
 				
 		}
 		memcpy(&dest, "", sizeof(uint8_t));	
