@@ -278,7 +278,7 @@ implementation{
 									dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
 							}
                             //if(TOS_NODE_ID == 7){
-                                printlspMap(lspMAP);
+                                //printlspMap(lspMAP);
                             //}
 							makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, myMsg->protocol, myMsg->seq, (uint8_t *) myMsg->payload, 20);
 							
@@ -357,7 +357,7 @@ implementation{
         dbg(GENERAL_CHANNEL, "PING EVENT \n");
         dbg(ROUTING_CHANNEL,"Ping to %d and src is %d \n", destination, TOS_NODE_ID);
         makePack(&sendPackage, TOS_NODE_ID, destination, 20, PROTOCOL_PING, seqNum, payload, PACKET_MAX_PAYLOAD_SIZE);
-        printlspMap(lspMAP);
+        //printlspMap(lspMAP);
         dbg(ROUTING_CHANNEL,"Running dijkstra\n");
 					dijkstra();
 					dbg(ROUTING_CHANNEL,"END\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"); 
