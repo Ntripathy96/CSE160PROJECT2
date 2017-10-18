@@ -275,7 +275,7 @@ implementation{
 							for(i = 0; i < totalNodes; i++){
 								lspMAP[myMsg->src].cost[i] = myMsg->payload[i];
 								if(myMsg->payload[i] != -1 && myMsg->payload[i] != 255)
-									//dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
+									dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
 							}
                             //if(TOS_NODE_ID == 7){
                                 printlspMap(lspMAP);
