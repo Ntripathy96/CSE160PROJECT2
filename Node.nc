@@ -115,7 +115,7 @@ implementation{
 
 	//checks who are the neighbors
 	event void Timer1.fired(){
-		if(isActive)neighborDiscoveryPacket();
+		if(isActive && neighborSequenceNum < 10)neighborDiscoveryPacket();
 	}
 		
 	//checks if the time is still valid to be in the list
