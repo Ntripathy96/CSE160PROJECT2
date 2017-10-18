@@ -127,7 +127,7 @@ implementation{
 				//dbg(NEIGHBOR_CHANNEL, "Removed something \n");
 				arrPrintList(&friendList);
 			}
-		dbg(ROUTING_CHANNEL, "Done checking \n\n");
+		//dbg(ROUTING_CHANNEL, "Done checking \n\n");
 	}
 	
 	event void lspTimer.fired(){
