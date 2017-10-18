@@ -567,10 +567,12 @@ implementation{
 		lspTuple lspTup, temp;
 		lspTableinit(&tentativeList); lspTableinit(&confirmedList);
 		dbg(ROUTING_CHANNEL,"start of dijkstra \n");
+        printlspMap(lspMAP);
 		lspTablePushBack(&tentativeList, temp = (lspTuple){TOS_NODE_ID,0,TOS_NODE_ID});
 		dbg(ROUTING_CHANNEL,"PushBack from tentativeList dest:%d cost:%d nextHop:%d \n", temp.dest, temp.nodeNcost, temp.nextHop);
 		while(!lspTableIsEmpty(&tentativeList)){
-			if(!lspTableContains(&confirmedList,lspTup = lspTupleRemoveMinCost(&tentativeList))) //gets the minCost node from the tentative and removes it, then checks if it's in the confirmed list.
+            lspTup = lspTupleRemoveMinCost(&tentativeList);
+			if(!lspTableContains(&confirmedList,lspTup)) //gets the minCost node from the tentative and removes it, then checks if it's in the confirmed list.
 				if(lspTablePushBack(&confirmedList,lspTup))
 					dbg(ROUTING_CHANNEL,"PushBack from confirmedList dest:%d cost:%d nextHop:%d \n", lspTup.dest,lspTup.nodeNcost, lspTup.nextHop);
 			for(i = 1; i < 20; i++){
