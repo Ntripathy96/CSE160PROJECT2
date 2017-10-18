@@ -19,7 +19,7 @@
 #include "includes/pair.h"
 //Ping Includes
 #include "includes/pingList.h"
-#include "ping.h"
+#include "includes/ping.h"
 
 
 typedef nx_struct neighbor {
