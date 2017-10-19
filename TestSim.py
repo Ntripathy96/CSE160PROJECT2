@@ -11,7 +11,7 @@ class TestSim:
     # COMMAND TYPES
     CMD_PING = 0
     CMD_NEIGHBOR_DUMP = 1
-    CMD_ROUTE_DUMP=3
+    CMD_ROUTETABLE_DUMP=3
     
     # CHANNELS - see includes/channels.h
     COMMAND_CHANNEL="command";
