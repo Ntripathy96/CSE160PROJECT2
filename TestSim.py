@@ -144,10 +144,10 @@ def main():
     s.runTime(20);
     s.ping(1, 7, "HOLA");
     s.runTime(20);
-    s.moteOff(5);
+    s.moteOff(5); #turn node off
     s.runTime(200);
     s.ping(3, 6, "MUNDO");
-    s.runTime(50);
+    s.runTime(100);
     
     
     i=0;
@@ -162,7 +162,7 @@ def main():
             s.runTime(20);
             print("\n")        
     
-    s.moteOn(5);
+    s.moteOn(5); #turn node 5 back on
     s.runTime(100);
     i=0;
     for i in range(1, s.numMote+1):
