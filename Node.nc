@@ -14,7 +14,6 @@
 #include "includes/channels.h"
 #include "includes/list.h"
 #include "includes/lspTable.h"
-
 #include "includes/lspTable.h"
 #include "includes/pair.h"
 //Ping Includes
@@ -31,10 +30,10 @@ typedef nx_struct neighbor {
 
 module Node{
     uses interface Boot;
-    uses interface Timer<TMilli> as pingTimeoutTimer;
-    uses interface Timer<TMilli> as Timer1; //Interface that was wired above.
+    uses interface Timer<TMilli> as pingTimer;
+    uses interface Timer<TMilli> as Timer1; //neighborDiscoveryTimer
     uses interface Timer<TMilli> as lspTimer; //link state timer 
-    uses interface Timer<TMilli> as neighborUpdateTimer;
+    uses interface Timer<TMilli> as updateNeighbors;
     uses interface Random as Random;
     uses interface SplitControl as AMControl;
     uses interface Receive;
@@ -54,9 +53,9 @@ implementation{
     pack sendPackage;
     //int seqNum = 0;
     bool printNodeNeighbors = FALSE;
-    uint16_t neighborSequenceNum = 0;
+    uint16_t neighSeqNum = 0;
     bool netChange = FALSE;
-    int totalNodes = 11;
+    int totalNodes = 20;
     //int MAX_NODES = 20;
     // Prototypes
     void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t Protocol, uint16_t seq, uint8_t *payload, uint8_t length);
@@ -110,8 +109,8 @@ implementation{
 		dbg(ROUTING_CHANNEL, "Booted\n");
 	}
    
-    event void pingTimeoutTimer.fired(){
-		checkTimes(&pings, call pingTimeoutTimer.getNow());
+    event void pingTimer.fired(){
+		checkTimes(&pings, call pingTimer.getNow());
 	}
 
 	//checks who are the neighbors
@@ -120,12 +119,10 @@ implementation{
 	}
 		
 	//checks if the time is still valid to be in the list
-	event void neighborUpdateTimer.fired(){
-		uint32_t timerCheck = call neighborUpdateTimer.getNow(); //give the node a 50 second margin from the current time.
-			//dbg(NEIGHBOR_CHANNEL, "Checking the neighbor %d \n", timerCheck);
-			if(arrListRemove(&friendList, timerCheck)){
-				//lspNeighborDiscoveryPacket();
-				dbg(NEIGHBOR_CHANNEL, "Removed something \n");
+	event void updateNeighbors.fired(){
+		uint32_t timer = call updateNeighbors.getNow(); 
+			
+			if(arrListRemove(&friendList, timer)){
 				arrPrintList(&friendList);
 			}
 		//dbg(ROUTING_CHANNEL, "Done checking \n\n");
@@ -138,9 +135,9 @@ implementation{
     
    event void AMControl.startDone(error_t err){
 		if(err == SUCCESS){
-			call pingTimeoutTimer.startPeriodic(PING_TIMER_PERIOD + (uint16_t) ((call Random.rand16())%200));
+			call pingTimer.startPeriodic(PING_TIMER_PERIOD + (uint16_t) ((call Random.rand16())%200));
 			call Timer1.startPeriodic(PING_TIMER_PERIOD + (uint16_t) ((call Random.rand16())%200));
-			call neighborUpdateTimer.startPeriodic(PING_TIMER_PERIOD + (uint16_t)((call Random.rand16())%200));
+			call updateNeighbors.startPeriodic(PING_TIMER_PERIOD + (uint16_t)((call Random.rand16())%200));
 			call lspTimer.startPeriodic(PING_TIMER_PERIOD + (uint16_t)((call Random.rand16())%200));
 		}else{
 			//Retry until successful
@@ -444,8 +441,8 @@ implementation{
 		uint16_t dest;
 		memcpy(&createMsg, "", sizeof(PACKET_MAX_PAYLOAD_SIZE));
 		memcpy(&dest, "", sizeof(uint8_t));
-		//dbg(NEIGHBOR_CHANNEL, "Sending seq#: %d\n", neighborSequenceNum);
-		makePack(&sendPackage, TOS_NODE_ID, discoveryPacket, 20, PROTOCOL_PINGREPLY, neighborSequenceNum++, (uint8_t *)createMsg,
+		//dbg(NEIGHBOR_CHANNEL, "Sending seq#: %d\n", neighSeqNum);
+		makePack(&sendPackage, TOS_NODE_ID, discoveryPacket, 20, PROTOCOL_PINGREPLY, neighSeqNum++, (uint8_t *)createMsg,
 				sizeof(createMsg));	
 		//dbg(ROUTING_CHANNEL, "NeighborDiscovery for %d\n", TOS_NODE_ID);
 		call Sender.send(sendPackage,AM_BROADCAST_ADDR);
