@@ -63,7 +63,7 @@ implementation{
     void printNeighborList();
     void printNeigh(lspMap*, int);
     arrlist Received;
-	arrlist friendList;
+	arrlist listofNeighbors;
     void neighborDiscovery();
     bool checkPacket(pack Packet);
 
@@ -79,11 +79,10 @@ implementation{
 	arrlist lspTracker;
 	float cost[20];
 	int lastSequenceTracker[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	float totalAverageEMA[20] =  {0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215};
-    bool isActive = TRUE;
+    bool Alive = TRUE;
 	void RouteTable();
 	int discoveryPacket = AM_BROADCAST_ADDR;
-
+    int pingTime = 5333;
     //Ping/PingReply Variables
 	pingList pings;
 
@@ -115,30 +114,30 @@ implementation{
 
 	//checks who are the neighbors
 	event void Timer1.fired(){
-		if(isActive)neighborDiscoveryPacket();
+		if(Alive)neighborDiscoveryPacket();
 	}
 		
 	//checks if the time is still valid to be in the list
 	event void updateNeighbors.fired(){
 		uint32_t timer = call updateNeighbors.getNow(); 
 			
-			if(arrListRemove(&friendList, timer)){
-				arrPrintList(&friendList);
+			if(arrListRemove(&listofNeighbors, timer)){
+				arrPrintList(&listofNeighbors);
 			}
 		//dbg(ROUTING_CHANNEL, "Done checking \n\n");
 	}
 	
 	event void lspTimer.fired(){
-		if(isActive)lspNeighborDiscoveryPacket();
+		if(Alive)lspNeighborDiscoveryPacket();
 	}
     
     
    event void AMControl.startDone(error_t err){
 		if(err == SUCCESS){
-			call pingTimer.startPeriodic(5333 + (uint16_t) ((call Random.rand16())%200));
-			call Timer1.startPeriodic(5333 + (uint16_t) ((call Random.rand16())%200));
-			call updateNeighbors.startPeriodic(5333 + (uint16_t)((call Random.rand16())%200));
-			call lspTimer.startPeriodic(5333 + (uint16_t)((call Random.rand16())%200));
+			call pingTimer.startPeriodic(pingTime + (uint16_t) ((call Random.rand16())%200));
+			call Timer1.startPeriodic(pingTime + (uint16_t) ((call Random.rand16())%200));
+			call updateNeighbors.startPeriodic(pingTime + (uint16_t)((call Random.rand16())%200));
+			call lspTimer.startPeriodic(pingTime + (uint16_t)((call Random.rand16())%200));
 		}else{
 			//Retry until successful
 			call AMControl.start();
@@ -153,8 +152,8 @@ implementation{
          
                 
                 uint16_t size = call NeighborList.size();
-        if(!isActive){
-			dbg(ROUTING_CHANNEL, "The Node is inactive, packet will not be read.\n");
+        if(!Alive){
+			dbg(ROUTING_CHANNEL, "Node is turned off\n");
 			return msg;
 		}
                 
@@ -250,7 +249,7 @@ implementation{
             }
             else if (myMsg->dest == AM_BROADCAST_ADDR) //neigbor discovery OR LSP
             {   
-                    pair friendListInfo;
+                    pair neighbor;
 				    uint8_t *tempArray;
 				    int i, j;
 				    int difference; 
@@ -295,16 +294,16 @@ implementation{
 						
 						
 						//dbg(NEIGHBOR_CHANNEL, "Received Neighbor reply from %d seq#: %d \n", myMsg->src, myMsg->seq);
-						if(!arrListContains(&friendList, myMsg->src, myMsg->seq)){
-							friendListInfo.seq = myMsg->seq;
-							friendListInfo.src = myMsg->src;
-							friendListInfo.timer = call Timer1.getNow();
-							if(arrListContainsKey(&friendList, myMsg->src)){
-								arrListReplace(&friendList,myMsg->src, myMsg->seq, friendListInfo.timer); //updates the current time of the node
+						if(!arrListContains(&listofNeighbors, myMsg->src, myMsg->seq)){
+							neighbor.seq = myMsg->seq;
+							neighbor.src = myMsg->src;
+							neighbor.timer = call Timer1.getNow();
+							if(arrListContainsKey(&listofNeighbors, myMsg->src)){
+								arrListReplace(&listofNeighbors,myMsg->src, myMsg->seq, neighbor.timer); //updates the current time of the node
 								//dbg(NEIGHBOR_CHANNEL, "Updating NeighborList................\n\n");
 							}
 							else{
-                                arrListPushBack(&friendList,friendListInfo);
+                                arrListPushBack(&listofNeighbors,neighbor);
                             }
 								
 							//dbg(NEIGHBOR_CHANNEL, "NOT IN NEIGHBOR LIST, ADDING\n\n");						
@@ -504,20 +503,20 @@ implementation{
         
         
         
-		for(i = 0; i < friendList.numValues; i++){
+		for(i = 0; i < listofNeighbors.numValues; i++){
 			
-              if(!arrListIsEmpty(&friendList)){  
+              if(!arrListIsEmpty(&listofNeighbors)){  
 
-				lspCostList[friendList.values[i].src] = 10;
-				//dbg(ROUTING_CHANNEL, "Cost to %d is %d %f %f\n", friendList.values[i].src, lspCostList[friendList.values[i].src], 1/totalAverageEMA[friendList.values[i].src]*10,totalAverageEMA[friendList.values[i].src]);
+				lspCostList[listofNeighbors.values[i].src] = 10;
+				
 				//puts the neighbor into the MAP
-				lspMAP[TOS_NODE_ID].cost[friendList.values[i].src] = 10;
+				lspMAP[TOS_NODE_ID].cost[listofNeighbors.values[i].src] = 10;
                
                 
-				//dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
+				//dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",listofNeighbors.values[i].src, lspCostList[listofNeighbors.values[i].src]);
 			}
 			else{
-                dbg(ROUTING_CHANNEL, "No neighbors yet. \n", friendList.values[i].src);
+                dbg(ROUTING_CHANNEL, "No neighbors yet. \n", listofNeighbors.values[i].src);
             }
 				
 		}
