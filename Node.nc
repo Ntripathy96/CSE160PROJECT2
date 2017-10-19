@@ -122,7 +122,7 @@ implementation{
 	//checks if the time is still valid to be in the list
 	event void neighborUpdateTimer.fired(){
 		uint32_t timerCheck = call neighborUpdateTimer.getNow(); //give the node a 50 second margin from the current time.
-			dbg(NEIGHBOR_CHANNEL, "Checking the neighbor %d \n", timerCheck);
+			//dbg(NEIGHBOR_CHANNEL, "Checking the neighbor %d \n", timerCheck);
 			if(arrListRemove(&friendList, timerCheck)){
 				//lspNeighborDiscoveryPacket();
 				dbg(NEIGHBOR_CHANNEL, "Removed something \n");
