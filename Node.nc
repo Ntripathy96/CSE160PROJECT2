@@ -219,9 +219,9 @@ implementation{
                     dbg(FLOODING_CHANNEL,"Packet Recieved from %d meant for %d, Sequence Number %d...Rebroadcasting\n",myMsg->src, myMsg->dest, myMsg->seq);
                     //int forwardTo;
 				       
-				        dbg(ROUTING_CHANNEL,"Running dijkstra\n");
-				            dijkstra();
-				        dbg(ROUTING_CHANNEL,"END\n\n"); 
+				        
+				        dijkstra();
+				        
 				        forwardTo = forwardPacketTo(&confirmedList,myMsg->dest);
 				        dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d \n", forwardTo, myMsg->src);
 				        if(forwardTo == 0) printCostList(&lspMAP, TOS_NODE_ID);
@@ -505,7 +505,7 @@ implementation{
 		int i;
 		uint8_t lspCostList[20] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};	
 		lspMapInit(&lspMAP,TOS_NODE_ID);
-        dbg(ROUTING_CHANNEL, "HELLO %d\n", TOS_NODE_ID);
+        //dbg(ROUTING_CHANNEL, "HELLO %d\n", TOS_NODE_ID);
         if(friendList.numValues == 0){
                 //dbg(ROUTING_CHANNEL, "SIZE: %d\n", friendList.numValues);
         }
@@ -520,7 +520,7 @@ implementation{
 				lspMAP[TOS_NODE_ID].cost[friendList.values[i].src] = 10;
                
                 if(TOS_NODE_ID == 2){
-                    dbg(ROUTING_CHANNEL, "Printing NEIGHBORS: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
+                    //dbg(ROUTING_CHANNEL, "Printing NEIGHBORS: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
                 }
 				//dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
 			}
