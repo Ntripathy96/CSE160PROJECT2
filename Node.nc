@@ -116,7 +116,7 @@ implementation{
 
 	//checks who are the neighbors
 	event void Timer1.fired(){
-		if(isActive && neighborSequenceNum < 2)neighborDiscoveryPacket();
+		if(isActive)neighborDiscoveryPacket();
 	}
 		
 	//checks if the time is still valid to be in the list
@@ -132,7 +132,7 @@ implementation{
 	}
 	
 	event void lspTimer.fired(){
-		if(isActive && linkSequenceNum < 5)lspNeighborDiscoveryPacket();
+		if(isActive)lspNeighborDiscoveryPacket();
 	}
     
     
@@ -462,7 +462,7 @@ implementation{
 		for(i = 0; i <list->numValues; i++){
 			timeOut = iTimer - list->values[i].timer;
 			if(list->values[i].timer + 50000 < iTimer ){
-				//dbg(NEIGHBOR_CHANNEL,"Removing %d from NeighborList, last seen at time %d. Time removed: %d \n", list->values[i].src, list->values[i].timer, iTimer);	
+				dbg(NEIGHBOR_CHANNEL,"Removing %d from NeighborList, last seen at time %d. Time removed: %d \n", list->values[i].src, list->values[i].timer, iTimer);	
 				list->values[i] = list->values[list->numValues-1];
 				list->numValues--;
 				i--;
