@@ -120,7 +120,7 @@ class TestSim:
         self.sendCMD(self.CMD_NEIGHBOR_DUMP, destination, "neighbor command");
 
     def routeDMP(self, destination):
-        self.sendCMD(self.CMD_ROUTE_DUMP, destination, "routing command");
+        self.sendCMD(self.CMD_ROUTETABLE_DUMP, destination, "routing command");
 
     def addChannel(self, channelName, out=sys.stdout):
         print 'Adding Channel', channelName;
@@ -167,7 +167,9 @@ def main():
     #s.ping(11, 13, "POKEEERR!");
     #s.runTime(2);
     s.neighborDMP(3);
+    s.runTime(100);
     s.routeDMP(3);
+    s.runTime(100);
     i=0;
     for i in range(1, s.numMote+1):
             s.neighborDMP(i);
