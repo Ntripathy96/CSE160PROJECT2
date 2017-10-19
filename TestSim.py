@@ -145,7 +145,7 @@ def main():
     s.ping(1, 7, "HOLA");
     s.runTime(20);
     s.moteOff(5);
-    s.runTime(20);
+    s.runTime(200);
     s.ping(3, 6, "MUNDO");
     s.runTime(20);
     
