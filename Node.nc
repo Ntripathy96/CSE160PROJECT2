@@ -304,11 +304,13 @@ implementation{
 							friendListInfo.timer = call Timer1.getNow();
 							if(arrListContainsKey(&friendList, myMsg->src)){
 								arrListReplace(&friendList,myMsg->src, myMsg->seq, friendListInfo.timer); //updates the current time of the node
-								dbg(NEIGHBOR_CHANNEL, "Updating NeighborList................\n\n");
+								//dbg(NEIGHBOR_CHANNEL, "Updating NeighborList................\n\n");
 							}
-							else
-								arrListPushBack(&friendList,friendListInfo);
-							dbg(NEIGHBOR_CHANNEL, "NOT IN NEIGHBOR LIST, ADDING\n\n");						
+							else{
+                                arrListPushBack(&friendList,friendListInfo);
+                            }
+								
+							//dbg(NEIGHBOR_CHANNEL, "NOT IN NEIGHBOR LIST, ADDING\n\n");						
 							//project 2 portion
 							if(lastSequenceTracker[myMsg->src] < myMsg->seq){
 								//calculate the cost of the link in here						
