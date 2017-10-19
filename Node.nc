@@ -122,10 +122,10 @@ implementation{
 	//checks if the time is still valid to be in the list
 	event void neighborUpdateTimer.fired(){
 		uint32_t timerCheck = call neighborUpdateTimer.getNow(); //give the node a 50 second margin from the current time.
-			//dbg(NEIGHBOR_CHANNEL, "Checking the neighbor %d \n", timerCheck);
+			dbg(NEIGHBOR_CHANNEL, "Checking the neighbor %d \n", timerCheck);
 			if(arrListRemove(&friendList, timerCheck)){
 				//lspNeighborDiscoveryPacket();
-				//dbg(NEIGHBOR_CHANNEL, "Removed something \n");
+				dbg(NEIGHBOR_CHANNEL, "Removed something \n");
 				arrPrintList(&friendList);
 			}
 		//dbg(ROUTING_CHANNEL, "Done checking \n\n");
@@ -304,11 +304,11 @@ implementation{
 							friendListInfo.timer = call Timer1.getNow();
 							if(arrListContainsKey(&friendList, myMsg->src)){
 								arrListReplace(&friendList,myMsg->src, myMsg->seq, friendListInfo.timer); //updates the current time of the node
-								//dbg(NEIGHBOR_CHANNEL, "Updating NeighborList................\n\n");
+								dbg(NEIGHBOR_CHANNEL, "Updating NeighborList................\n\n");
 							}
 							else
 								arrListPushBack(&friendList,friendListInfo);
-							//dbg(NEIGHBOR_CHANNEL, "NOT IN NEIGHBOR LIST, ADDING\n\n");						
+							dbg(NEIGHBOR_CHANNEL, "NOT IN NEIGHBOR LIST, ADDING\n\n");						
 							//project 2 portion
 							if(lastSequenceTracker[myMsg->src] < myMsg->seq){
 								//calculate the cost of the link in here						
