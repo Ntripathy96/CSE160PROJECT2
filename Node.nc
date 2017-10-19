@@ -3,7 +3,7 @@
  * This class provides the basic functions of a network node.
  *
  * @author UCM ANDES Lab
- * @date   2013/09/03
+ * 
  *
  */
 #include <Timer.h>
@@ -14,7 +14,7 @@
 #include "includes/channels.h"
 #include "includes/list.h"
 #include "includes/lspTable.h"
-#include "includes/arrTimerList.h"
+//#include "includes/arrTimerList.h"
 #include "includes/lspTable.h"
 #include "includes/pair.h"
 //Ping Includes
@@ -101,7 +101,7 @@ implementation{
 	void dijkstra();
 	int forwardPacketTo(lspTable* list, int dest);
 	void printCostList(lspMap *list, uint8_t nodeID);
-	float EMA(float prevEMA, float now,float weight);
+	
     //------Project 2-------//END
 
     event void Boot.booted(){
@@ -316,10 +316,7 @@ implementation{
 								//calculate the cost of the link in here						
 								difference =  myMsg->seq -lastSequenceTracker[myMsg->src];
 								lastSequenceTracker[myMsg->src] = myMsg->seq;
-								if(myMsg->seq <= 1)
-									totalAverageEMA[myMsg->src] = EMA(1.0,1.0,1.0);		
-								else							
-									totalAverageEMA[myMsg->src] = EMA(totalAverageEMA[myMsg->src],1,1/difference);			
+								
 							}
 						}
 						else{
@@ -507,13 +504,11 @@ implementation{
 		int i;
 		uint8_t lspCostList[20] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};	
 		lspMapInit(&lspMAP,TOS_NODE_ID);
-        //dbg(ROUTING_CHANNEL, "HELLO %d\n", TOS_NODE_ID);
-        if(friendList.numValues == 0){
-                //dbg(ROUTING_CHANNEL, "SIZE: %d\n", friendList.numValues);
-        }
+        
+        
         
 		for(i = 0; i < friendList.numValues; i++){
-			//if(1/totalAverageEMA[friendList.values[i].src]*10 < 255){
+			
               if(!arrListIsEmpty(&friendList)){  
 
 				lspCostList[friendList.values[i].src] = 10;
@@ -521,9 +516,7 @@ implementation{
 				//puts the neighbor into the MAP
 				lspMAP[TOS_NODE_ID].cost[friendList.values[i].src] = 10;
                
-                if(TOS_NODE_ID == 2){
-                    //dbg(ROUTING_CHANNEL, "Printing NEIGHBORS: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
-                }
+                
 				//dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",friendList.values[i].src, lspCostList[friendList.values[i].src]);
 			}
 			else{
@@ -536,8 +529,8 @@ implementation{
 		
         call Sender.send(sendPackage,AM_BROADCAST_ADDR);
 		
-		//dbg(ROUTING_CHANNEL, "Sending LSP \n");	
-		//dbg(ROUTING_CHANNEL, "END\n");
+		//dbg(ROUTING_CHANNEL, "Sending LSP\n");	
+		
 	}	
 		
     void neighborDiscovery(){
@@ -621,16 +614,7 @@ implementation{
 	}
 	
 	
-	/**
-	 * let S_1 = Y_1
-	 * Exponential Moving Average
-	 * S_t = alpha*Y_t + (1-alpha)*S_(t-1)
-	 */	
-	float EMA(float prevEMA, float now,float weight){
-		float alpha = 0.5*weight;
-		float averageEMA = alpha*now + (1-alpha)*prevEMA;
-		return averageEMA;
-	}
+	
 
 
     
