@@ -177,6 +177,6 @@ def main():
             print("\n")  
 
     s.ping(3, 6, "WOW");
-    s.runTime(100);
+    s.runTime(40);
 if __name__ == '__main__':
     main()

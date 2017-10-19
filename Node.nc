@@ -15,7 +15,7 @@
 #include "includes/linkedList.h"
 #include "includes/linkState.h"
 #include "includes/pair.h"
-//Ping Includes
+
 #include "includes/pingList.h"
 #include "includes/ping.h"
 
@@ -217,13 +217,13 @@ implementation{
 				        
 				        forwardtoNode = forwardPacketTo(&confirmedList,myMsg->dest);
 				        
-				        if(forwardtoNode == 0) printNeighborCosts(&lspHashMap, TOS_NODE_ID);
-				        if(forwardtoNode == -1){
-					        dbg(ROUTING_CHANNEL, "rechecking \n");
+				        if(forwardtoNode == 0) printNeighborCosts(&lspHashMap, TOS_NODE_ID); //must be this node
+				        if(forwardtoNode == -1){ //error detected
+					        dbg(ROUTING_CHANNEL, "rerunning dikstra \n");
 					        dijkstra();
 					        forwardtoNode = forwardPacketTo(&confirmedList,myMsg->dest);
 					        if(forwardtoNode == -1)
-						        dbg(ROUTING_CHANNEL, "Dropping for reals\n");
+						        dbg(ROUTING_CHANNEL, "Dropping.....\n");
 					        else{
 						        dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d \n", forwardtoNode, myMsg->src);
 						        call Sender.send(sendPackage, forwardtoNode);
@@ -596,12 +596,12 @@ implementation{
                 }
 			}
 		}
-		//dbg(ROUTING_CHANNEL, "Printing the ROUTING_CHANNEL table! \n");
+		//dbg(ROUTING_CHANNEL, "Printing Routing table\n");
 		for(i = 0; i < confirmedList.numValues; i++){
             //dbg(ROUTING_CHANNEL, "dest:%d cost:%d nextHop:%d \n",confirmedList.lspTuples[i].dest,confirmedList.lspTuples[i].nodeNcost,confirmedList.lspTuples[i].nextHop);
         }
 			
-		//dbg(ROUTING_CHANNEL, "End of dijkstra! \n");
+		//dbg(ROUTING_CHANNEL, "dijkstra done\n");
 	}
 
 	int forwardPacketTo(LSP* list, int dest){	
@@ -676,7 +676,7 @@ implementation{
                 }
 			}
 		}
-		dbg(ROUTING_CHANNEL, "PRINTING ROUTING TABLE: \n");
+		dbg(ROUTING_CHANNEL, "ROUTING TABLE of %d: \n", TOS_NODE_ID);
 		for(i = 0; i < confirmedList.numValues; i++)
 			dbg(ROUTING_CHANNEL, "dest:%d cost:%d nextHop:%d \n",confirmedList.lspTuples[i].dest,confirmedList.lspTuples[i].nodeNcost,confirmedList.lspTuples[i].nextHop);
 		
