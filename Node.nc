@@ -494,9 +494,9 @@ implementation{
 		uint16_t dest;
         
 		int i, j;
-		uint8_t lspCostList[20]; 
+		uint8_t lspCostList[20] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}; 
         for(j = 0; j < maxNodes; j++){
-            lspCostList[i] = -1;
+            //lspCostList[i] = -1;
         }	
 		netGRAPHInit(&lspHashMap,TOS_NODE_ID);
         
