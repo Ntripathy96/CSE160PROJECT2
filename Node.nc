@@ -115,7 +115,7 @@ implementation{
 
 	//checks who are the neighbors
 	event void Timer1.fired(){
-		if(isActive && neighborSequenceNum < 2)neighborDiscoveryPacket();
+		if(isActive && neighborSequenceNum < 1)neighborDiscoveryPacket();
 	}
 		
 	//checks if the time is still valid to be in the list
@@ -124,10 +124,10 @@ implementation{
 			//dbg(NEIGHBOR_CHANNEL, "Checking the neighbor %d \n", timerCheck);
 			if(arrListRemove(&friendList, timerCheck)){
 				//lspNeighborDiscoveryPacket();
-				//dbg(NEIGHBOR_CHANNEL, "Removed something \n");
+				dbg(NEIGHBOR_CHANNEL, "Removed something \n");
 				arrPrintList(&friendList);
 			}
-		//dbg(ROUTING_CHANNEL, "Done checking \n\n");
+		dbg(ROUTING_CHANNEL, "Done checking \n\n");
 	}
 	
 	event void lspTimer.fired(){
@@ -232,13 +232,13 @@ implementation{
 					        if(forwardTo == -1)
 						        dbg(ROUTING_CHANNEL, "Dropping for reals\n");
 					        else{
-						        dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d \n", forwardTo, TOS_NODE_ID);
+						        dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d \n", forwardTo, myMsg->src);
 						        call Sender.send(sendPackage, forwardTo);
 						        
 					        }
 				        }
 				    else{
-					        dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d \n", forwardTo, TOS_NODE_ID);
+					        dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d \n", forwardTo, myMsg->src);
 					        call Sender.send(sendPackage, forwardTo);
 					        
 				    }
