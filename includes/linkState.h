@@ -106,7 +106,7 @@ lspTuple LSPRemove(LSP* list, int node){
 	}	
 }
 
-lspTuple lspTupleRemoveMinCost(LSP* cur){
+lspTuple removeMin(LSP* cur){
 	int i;
 	int minNode;
 	lspTuple temp;

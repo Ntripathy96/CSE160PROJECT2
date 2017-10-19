@@ -13,7 +13,7 @@
 #include "includes/sendInfo.h"
 #include "includes/channels.h"
 #include "includes/linkedList.h"
-#include "includes/lspTable.h"
+#include "includes/linkState.h"
 #include "includes/pair.h"
 //Ping Includes
 #include "includes/pingList.h"
@@ -54,23 +54,21 @@ implementation{
     bool printNodeNeighbors = FALSE;
     uint16_t neighSeqNum = 0;
     bool netChange = FALSE;
-    int totalNodes = 20;
+    int maxNodes = 20;
     //int MAX_NODES = 20;
     // Prototypes
     void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t Protocol, uint16_t seq, uint8_t *payload, uint8_t length);
    
     void printNeighborList();
     void printNeigh(netGRAPH*, int);
-    linkedList Received;
+    linkedList nodesRecieved;
 	linkedList listofNeighbors;
     void neighborDiscovery();
     bool checkPacket(pack Packet);
 
     //project 2 START 
     
-    //---- PROJECT 2 VARIABLES -----
-	//We're keeping track of each node with the index. Assume that the index is the name of the node.
-	//note: We need to shift the nodes by 1 so that index 0 is keeping track of node 1. (May be reconsidered)
+    
 	uint16_t linkSequenceNum = 0;
 	LSP confirmedList;
 	LSP tentativeList;
@@ -82,8 +80,8 @@ implementation{
 	void RouteTable();
 	int discoveryPacket = AM_BROADCAST_ADDR;
     int pingTime = 5333;
-    //Ping/PingReply Variables
-	pingList pings;
+    
+	pingList pingEvents;
 
     //project 1
 	void arrPrintList(linkedList *list);
@@ -103,12 +101,12 @@ implementation{
 
     event void Boot.booted(){
 		call AMControl.start();
-		linkedListInit(&Received);
+		linkedListInit(&nodesRecieved);
 		dbg(ROUTING_CHANNEL, "Booted\n");
 	}
    
     event void pingTimer.fired(){
-		checkTimes(&pings, call pingTimer.getNow());
+		checkTimes(&pingEvents, call pingTimer.getNow());
 	}
 
 	//checks who are the neighbors
@@ -268,7 +266,7 @@ implementation{
 							netGRAPHInit(&lspHashMap,myMsg->src);
                             
 							//dbg(ROUTING_CHANNEL,"LINK STATE PACKET from %d seq#: %d  \n", myMsg->src, myMsg->seq);								
-							for(i = 0; i < totalNodes; i++){
+							for(i = 0; i < maxNodes; i++){
 								lspHashMap[myMsg->src].cost[i] = myMsg->payload[i];
                                 if(myMsg->src == 2){
                                     //dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
@@ -477,8 +475,8 @@ implementation{
     //---- PROJECT 2 IMPLEMENTATIONS
 	void printNetGraph(netGRAPH *list){
 		int i,j;
-		for(i = 0; i < totalNodes; i++){
-			for(j = 0; j < totalNodes; j++){
+		for(i = 0; i < maxNodes; i++){
+			for(j = 0; j < maxNodes; j++){
 				if(list[i].cost[j] != 255 && list[i].cost[j] != -1 && list[i].cost[j] != 0)
 					dbg(ROUTING_CHANNEL, "src: %d  neighbor: %d cost: %d \n", i, j, list[i].cost[j]);
 			}	
@@ -488,7 +486,7 @@ implementation{
 	
 	void printCostList(netGRAPH *list, uint8_t nodeID) {
 		uint8_t i;
-		for(i = 0; i < totalNodes; i++) {
+		for(i = 0; i < maxNodes; i++) {
 			//dbg(ROUTING_CHANNEL, "From %d To %d Costs %d", nodeID, i, list[nodeID].cost[i]);
 		}
 	}
@@ -581,7 +579,7 @@ implementation{
 		LSPPushBack(&tentativeList, temp = (lspTuple){TOS_NODE_ID,0,TOS_NODE_ID});
 		//dbg(ROUTING_CHANNEL,"PushBack from tentativeList dest:%d cost:%d nextHop:%d \n", temp.dest, temp.nodeNcost, temp.nextHop);
 		while(!LSPIsEmpty(&tentativeList)){
-            lspTup = lspTupleRemoveMinCost(&tentativeList);
+            lspTup = removeMin(&tentativeList);
 			if(!LSPContains(&confirmedList,lspTup)) //gets the minCost node from the tentative and removes it, then checks if it's in the confirmed list.
 				if(LSPPushBack(&confirmedList,lspTup)){
 					//dbg(ROUTING_CHANNEL,"PushBack from confirmedList dest:%d cost:%d nextHop:%d \n", lspTup.dest,lspTup.nodeNcost, lspTup.nextHop);
@@ -662,7 +660,7 @@ implementation{
 		LSPPushBack(&tentativeList, temp = (lspTuple){TOS_NODE_ID,0,TOS_NODE_ID});
 		
 		while(!LSPIsEmpty(&tentativeList)){
-            lspTup = lspTupleRemoveMinCost(&tentativeList);
+            lspTup = removeMin(&tentativeList);
 			if(!LSPContains(&confirmedList,lspTup)) //gets the minCost node from the tentative and removes it, then checks if it's in the confirmed list.
 				if(LSPPushBack(&confirmedList,lspTup)){
 					
@@ -684,7 +682,7 @@ implementation{
     void printNeigh(netGRAPH *list, int nodeID) {
 		uint8_t i;
         dbg(NEIGHBOR_CHANNEL, "%d Neighbors:\n", TOS_NODE_ID);
-		for(i = 0; i < totalNodes; i++) {
+		for(i = 0; i < maxNodes; i++) {
             if(list[nodeID].cost[i] > 0 && list[nodeID].cost[i] < 255){
                 dbg(NEIGHBOR_CHANNEL, "%d\n", i);
             }
