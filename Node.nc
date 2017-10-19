@@ -196,10 +196,10 @@ implementation{
                     
                     dbg(FLOODING_CHANNEL, "Packet has Arrived to destination! %d -> %d seq num: %d\n ", myMsg->src,myMsg->dest, myMsg->seq);
                     dbg(FLOODING_CHANNEL, "Package Payload: %s\n", myMsg->payload);
-                    dbg(FLOODING_CHANNEL, "Sending Ping Reply to %d! \n\n", myMsg->src);
-					dbg(ROUTING_CHANNEL,"Running dijkstra\n");
+                    dbg(FLOODING_CHANNEL, "Sending Ping Reply to %d! \n", myMsg->src);
+					
 					dijkstra();
-					dbg(ROUTING_CHANNEL,"END\n\n"); 
+					
 					forwardTo = forwardPacketTo(&confirmedList,myMsg->src);
                     
                     dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d to destination: %d\n", forwardTo, TOS_NODE_ID, myMsg->src);
