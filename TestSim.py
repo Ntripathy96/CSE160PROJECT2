@@ -163,6 +163,7 @@ def main():
             print("\n")        
     
     s.moteOn(5); #turn node 5 back on
+    #turned on
     s.runTime(100);
     i=0;
     for i in range(1, s.numMote+1):
