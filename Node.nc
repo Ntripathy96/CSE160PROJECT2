@@ -588,7 +588,7 @@ implementation{
 		int i;	
 		lspTuple lspTup, temp;
 		lspTableinit(&tentativeList); lspTableinit(&confirmedList);
-		dbg(ROUTING_CHANNEL,"running dijkstra \n");
+		//dbg(ROUTING_CHANNEL,"running dijkstra \n");
         //printlspMap(lspMAP);
 		lspTablePushBack(&tentativeList, temp = (lspTuple){TOS_NODE_ID,0,TOS_NODE_ID});
 		//dbg(ROUTING_CHANNEL,"PushBack from tentativeList dest:%d cost:%d nextHop:%d \n", temp.dest, temp.nodeNcost, temp.nextHop);
@@ -613,7 +613,7 @@ implementation{
             //dbg(ROUTING_CHANNEL, "dest:%d cost:%d nextHop:%d \n",confirmedList.lspTuples[i].dest,confirmedList.lspTuples[i].nodeNcost,confirmedList.lspTuples[i].nextHop);
         }
 			
-		dbg(ROUTING_CHANNEL, "End of dijkstra! \n");
+		//dbg(ROUTING_CHANNEL, "End of dijkstra! \n");
 	}
 
 	int forwardPacketTo(lspTable* list, int dest){	
