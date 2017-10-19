@@ -377,7 +377,7 @@ implementation{
     
     event void CommandHandler.printNeighbors()
     {
-        printNeighborList();
+        arrPrintList(&friendList);
     }
     
     event void CommandHandler.printRouteTable(){
