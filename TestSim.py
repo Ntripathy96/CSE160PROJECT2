@@ -144,6 +144,8 @@ def main():
     s.runTime(100);
     s.ping(1, 7, "HOLA");
     s.runTime(100);
+    s.moteOff(5);
+    s.runtTime(500);
     s.ping(1, 9, "MUNDO");
     s.runTime(100);
     #s.ping(9, 10, "Hello, World");
@@ -179,7 +181,7 @@ def main():
             s.routeDMP(j);
             s.runTime(100);
             print("\n")        
-    s.moteOff(5);
+    
     i=0;
     for i in range(1, s.numMote+1):
             s.neighborDMP(i);
