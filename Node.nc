@@ -474,7 +474,7 @@ implementation{
 	void arrPrintList(arrlist* list){
 		uint8_t i;
 		for(i = 0; i<list->numValues; i++){
-			//dbg(NEIGHBOR_CHANNEL,"NEIGHBOR: %d last time:%d \n", list->values[i].src, list->values[i].timer);
+			dbg(NEIGHBOR_CHANNEL,"NEIGHBOR: %d\n", list->values[i].src);
 		}	
 	}
 	//---- END OF PROJECT 1 IMPLEMENTATIONS
