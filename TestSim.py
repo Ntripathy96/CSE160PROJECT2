@@ -174,6 +174,9 @@ def main():
     for j in range(1, s.numMote+1):
             s.routeDMP(j);
             s.runTime(100);
-            print("\n")   
+            print("\n")  
+             
+    s.ping(3, 6, "WOW");
+    s.runTime(100);
 if __name__ == '__main__':
     main()

@@ -361,7 +361,7 @@ implementation{
     
     event void CommandHandler.ping(uint16_t destination, uint8_t *payload){
         int forwardTo;
-        dbg(GENERAL_CHANNEL, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+        
         dbg(GENERAL_CHANNEL, "PING EVENT \n");
         dbg(ROUTING_CHANNEL,"Ping to %d and src is %d \n", destination, TOS_NODE_ID);
         makePack(&sendPackage, TOS_NODE_ID, destination, 20, PROTOCOL_PING, seqNum, payload, PACKET_MAX_PAYLOAD_SIZE);

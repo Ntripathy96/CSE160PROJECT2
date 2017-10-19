@@ -39,7 +39,7 @@ implementation{
             }
             // Change it to our type.
             msg = (CommandMsg*) payload;
-
+            dbg(COMMAND_CHANNEL,"\n\n\n\n\n\n\n");
             dbg(COMMAND_CHANNEL, "A Command has been Issued.\n");
             buff = (uint8_t*) msg->payload;
             commandID = msg->id;
