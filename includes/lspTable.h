@@ -10,26 +10,26 @@ typedef struct lspTuple{
 	uint8_t nextHop;	
 }lspTuple;
 
-typedef struct lspTable{
+typedef struct LSP{
 
 	lspTuple lspTuples[MAXNODES];
 	uint8_t numValues;
 
-}lspTable;
+}LSP;
 
 typedef struct lspSrc{
 	uint8_t src;
 	uint8_t indexNumber;
 }lspSrc;
 
-void lspTableinit(lspTable* list){
+void LSPinit(LSP* list){
 	int i;
 	for(i = 0; i < MAXNODES; i++)
 		list->lspTuples[i].nodeNcost = -1;
 	list->numValues = 0;
 }
 
-bool lspTupleReplace(lspTable* list, lspTuple newTuple, int cost){
+bool lspTupleReplace(LSP* list, lspTuple newTuple, int cost){
 	int i;
 	for(i = 0; i<list->numValues; i++){
 		if(cost < list->lspTuples[i].nodeNcost && newTuple.dest == list->lspTuples[i].dest){
@@ -42,7 +42,7 @@ bool lspTupleReplace(lspTable* list, lspTuple newTuple, int cost){
 	return FALSE;
 }
 
-bool lspTablePushBack(lspTable* cur, lspTuple newVal){	
+bool LSPPushBack(LSP* cur, lspTuple newVal){	
 		if(cur->numValues != MAXNODEVAL){
 			cur->lspTuples[cur->numValues] = newVal;
 			cur->numValues++;
@@ -50,7 +50,7 @@ bool lspTablePushBack(lspTable* cur, lspTuple newVal){
 		}else return FALSE;
 }
 
-bool lspTableIsEmpty(lspTable* cur){
+bool LSPIsEmpty(LSP* cur){
 	if(cur->numValues == 0)
 		return TRUE;
 	else
@@ -58,7 +58,7 @@ bool lspTableIsEmpty(lspTable* cur){
 }
 
 //returns true if the node and the lsp tuple has the same destination
-bool lspTableContains(lspTable* list, lspTuple newVal){
+bool LSPContains(LSP* list, lspTuple newVal){
 	uint8_t i;
 	for(i = 0; i<list->numValues; i++){
 		if(newVal.dest == list->lspTuples[i].dest) return TRUE;
@@ -67,7 +67,7 @@ bool lspTableContains(lspTable* list, lspTuple newVal){
 }
 
 //returns true if the destination is already in the table
-bool lspTableContainsDest(lspTable* list, int node){
+bool LSPContainsDest(LSP* list, int node){
 	uint8_t i;
 	for(i = 0; i<list->numValues; i++){
 		if(node == list->lspTuples[i].dest){
@@ -77,7 +77,7 @@ bool lspTableContainsDest(lspTable* list, int node){
 	return FALSE;
 }
 
-lspTuple lspTableGet(lspTable* list, int node){
+lspTuple LSPGet(LSP* list, int node){
 	uint8_t i;
 	lspTuple derp;
 	for(i = 0; i<list->numValues; i++){
@@ -86,7 +86,7 @@ lspTuple lspTableGet(lspTable* list, int node){
 	return derp;
 }
 
-lspTuple lspTableRemove(lspTable* list, int node){
+lspTuple LSPRemove(LSP* list, int node){
 	uint8_t i;
 	lspTuple temp;
 	for(i = 0; i<=list->numValues; i++){
@@ -106,7 +106,7 @@ lspTuple lspTableRemove(lspTable* list, int node){
 	}	
 }
 
-lspTuple lspTupleRemoveMinCost(lspTable* cur){
+lspTuple lspTupleRemoveMinCost(LSP* cur){
 	int i;
 	int minNode;
 	lspTuple temp;
@@ -118,11 +118,11 @@ lspTuple lspTupleRemoveMinCost(lspTable* cur){
 			minNode = i;
 		}
 	}
-	temp2 = lspTableRemove(cur, minNode);
+	temp2 = LSPRemove(cur, minNode);
 	return temp2;
 }
 
-int lspTableLookUp(lspTable* list, int dest){
+int LSPLookUp(LSP* list, int dest){
 	int i;
 	for(i = 0; i < list->numValues; i++){
 		if(list->lspTuples[i].dest == dest)
@@ -132,11 +132,11 @@ int lspTableLookUp(lspTable* list, int dest){
 }
 
 //Creates a Map of all the Nodes
-typedef struct lspMap{
+typedef struct netGRAPH{
 	uint8_t cost[20];
-}lspMap;
+}netGRAPH;
 
-void lspMapInit(lspMap *list, int TOS_NODE_ID){
+void netGRAPHInit(netGRAPH *list, int TOS_NODE_ID){
 	int i;	
 	for(i = 0; i < MAXNODES; i++){
 		list[TOS_NODE_ID].cost[i] = -1;	

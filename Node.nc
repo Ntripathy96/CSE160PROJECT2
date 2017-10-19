@@ -12,8 +12,7 @@
 #include "includes/CommandMsg.h"
 #include "includes/sendInfo.h"
 #include "includes/channels.h"
-#include "includes/list.h"
-#include "includes/lspTable.h"
+#include "includes/linkedList.h"
 #include "includes/lspTable.h"
 #include "includes/pair.h"
 //Ping Includes
@@ -59,9 +58,9 @@ implementation{
     //int MAX_NODES = 20;
     // Prototypes
     void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t Protocol, uint16_t seq, uint8_t *payload, uint8_t length);
-    void printNeighbors();
+   
     void printNeighborList();
-    void printNeigh(lspMap*, int);
+    void printNeigh(netGRAPH*, int);
     linkedList Received;
 	linkedList listofNeighbors;
     void neighborDiscovery();
@@ -73,9 +72,9 @@ implementation{
 	//We're keeping track of each node with the index. Assume that the index is the name of the node.
 	//note: We need to shift the nodes by 1 so that index 0 is keeping track of node 1. (May be reconsidered)
 	uint16_t linkSequenceNum = 0;
-	lspTable confirmedList;
-	lspTable tentativeList;
-	lspMap lspMAP[20];
+	LSP confirmedList;
+	LSP tentativeList;
+	netGRAPH lspHashMap[20];
 	linkedList lspTracker;
 	float cost[20];
 	int lastSequenceTracker[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -93,12 +92,12 @@ implementation{
 	
 	
 	//project 2
-	void printlspMap(lspMap *list);
+	void printNetGraph(netGRAPH *list);
 	void lspNeighborDiscoveryPacket();
     
 	void dijkstra();
-	int forwardPacketTo(lspTable* list, int dest);
-	void printCostList(lspMap *list, uint8_t nodeID);
+	int forwardPacketTo(LSP* list, int dest);
+	void printCostList(netGRAPH *list, uint8_t nodeID);
 	
     //------Project 2-------//END
 
@@ -221,7 +220,7 @@ implementation{
 				        
 				        forwardTo = forwardPacketTo(&confirmedList,myMsg->dest);
 				        
-				        if(forwardTo == 0) printCostList(&lspMAP, TOS_NODE_ID);
+				        if(forwardTo == 0) printCostList(&lspHashMap, TOS_NODE_ID);
 				        if(forwardTo == -1){
 					        dbg(ROUTING_CHANNEL, "rechecking \n");
 					        dijkstra();
@@ -266,11 +265,11 @@ implementation{
 							temp1.seq = myMsg->seq;
 							temp1.src = myMsg->src;
 							linkedListPushBack(&lspTracker,temp1);
-							lspMapInit(&lspMAP,myMsg->src);
+							netGRAPHInit(&lspHashMap,myMsg->src);
                             
 							//dbg(ROUTING_CHANNEL,"LINK STATE PACKET from %d seq#: %d  \n", myMsg->src, myMsg->seq);								
 							for(i = 0; i < totalNodes; i++){
-								lspMAP[myMsg->src].cost[i] = myMsg->payload[i];
+								lspHashMap[myMsg->src].cost[i] = myMsg->payload[i];
                                 if(myMsg->src == 2){
                                     //dbg(ROUTING_CHANNEL, "Printing out src:%d neighbor:%d  cost:%d \n", myMsg->src, i , myMsg->payload[i]);
                                 }
@@ -280,7 +279,7 @@ implementation{
 									
 							}
                             //if(TOS_NODE_ID == 7){
-                                //printlspMap(lspMAP);
+                                //printNetGraph(lspHashMap);
                             //}
 							makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, myMsg->protocol, myMsg->seq, (uint8_t *) myMsg->payload, 20);
 							
@@ -358,7 +357,7 @@ implementation{
         dbg(GENERAL_CHANNEL, "PING EVENT \n");
         dbg(ROUTING_CHANNEL,"Ping to %d and src is %d \n", destination, TOS_NODE_ID);
         makePack(&sendPackage, TOS_NODE_ID, destination, 20, PROTOCOL_PING, seqNum, payload, PACKET_MAX_PAYLOAD_SIZE);
-        //printlspMap(lspMAP);
+        //printNetGraph(lspHashMap);
        
 		dijkstra();
 					
@@ -373,7 +372,7 @@ implementation{
     
     event void CommandHandler.printNeighbors()
     {
-        printNeigh(&lspMAP,TOS_NODE_ID);
+        printNeigh(&lspHashMap,TOS_NODE_ID);
     }
     
     event void CommandHandler.printRouteTable(){
@@ -476,7 +475,7 @@ implementation{
 	//---- END OF PROJECT 1 IMPLEMENTATIONS
 
     //---- PROJECT 2 IMPLEMENTATIONS
-	void printlspMap(lspMap *list){
+	void printNetGraph(netGRAPH *list){
 		int i,j;
 		for(i = 0; i < totalNodes; i++){
 			for(j = 0; j < totalNodes; j++){
@@ -487,7 +486,7 @@ implementation{
 		dbg(ROUTING_CHANNEL, "END \n\n");
 	}
 	
-	void printCostList(lspMap *list, uint8_t nodeID) {
+	void printCostList(netGRAPH *list, uint8_t nodeID) {
 		uint8_t i;
 		for(i = 0; i < totalNodes; i++) {
 			//dbg(ROUTING_CHANNEL, "From %d To %d Costs %d", nodeID, i, list[nodeID].cost[i]);
@@ -499,7 +498,7 @@ implementation{
         
 		int i;
 		uint8_t lspCostList[20] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};	
-		lspMapInit(&lspMAP,TOS_NODE_ID);
+		netGRAPHInit(&lspHashMap,TOS_NODE_ID);
         
         
         
@@ -510,7 +509,7 @@ implementation{
 				lspCostList[listofNeighbors.values[i].src] = 10;
 				
 				//puts the neighbor into the MAP
-				lspMAP[TOS_NODE_ID].cost[listofNeighbors.values[i].src] = 10;
+				lspHashMap[TOS_NODE_ID].cost[listofNeighbors.values[i].src] = 10;
                
                 
 				//dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",listofNeighbors.values[i].src, lspCostList[listofNeighbors.values[i].src]);
@@ -576,23 +575,23 @@ implementation{
     void dijkstra(){
 		int i;	
 		lspTuple lspTup, temp;
-		lspTableinit(&tentativeList); lspTableinit(&confirmedList);
+		LSPinit(&tentativeList); LSPinit(&confirmedList);
 		//dbg(ROUTING_CHANNEL,"running dijkstra \n");
-        //printlspMap(lspMAP);
-		lspTablePushBack(&tentativeList, temp = (lspTuple){TOS_NODE_ID,0,TOS_NODE_ID});
+        //printNetGraph(lspHashMap);
+		LSPPushBack(&tentativeList, temp = (lspTuple){TOS_NODE_ID,0,TOS_NODE_ID});
 		//dbg(ROUTING_CHANNEL,"PushBack from tentativeList dest:%d cost:%d nextHop:%d \n", temp.dest, temp.nodeNcost, temp.nextHop);
-		while(!lspTableIsEmpty(&tentativeList)){
+		while(!LSPIsEmpty(&tentativeList)){
             lspTup = lspTupleRemoveMinCost(&tentativeList);
-			if(!lspTableContains(&confirmedList,lspTup)) //gets the minCost node from the tentative and removes it, then checks if it's in the confirmed list.
-				if(lspTablePushBack(&confirmedList,lspTup)){
+			if(!LSPContains(&confirmedList,lspTup)) //gets the minCost node from the tentative and removes it, then checks if it's in the confirmed list.
+				if(LSPPushBack(&confirmedList,lspTup)){
 					//dbg(ROUTING_CHANNEL,"PushBack from confirmedList dest:%d cost:%d nextHop:%d \n", lspTup.dest,lspTup.nodeNcost, lspTup.nextHop);
                 }
 			for(i = 1; i < 20; i++){
-				temp = (lspTuple){i,lspMAP[lspTup.dest].cost[i]+lspTup.nodeNcost,(lspTup.nextHop == TOS_NODE_ID)?i:lspTup.nextHop};
-				if(!lspTableContainsDest(&confirmedList, i) && lspMAP[lspTup.dest].cost[i] != 255 && lspMAP[i].cost[lspTup.dest] != 255 && lspTupleReplace(&tentativeList,temp,temp.nodeNcost)){
+				temp = (lspTuple){i,lspHashMap[lspTup.dest].cost[i]+lspTup.nodeNcost,(lspTup.nextHop == TOS_NODE_ID)?i:lspTup.nextHop};
+				if(!LSPContainsDest(&confirmedList, i) && lspHashMap[lspTup.dest].cost[i] != 255 && lspHashMap[i].cost[lspTup.dest] != 255 && lspTupleReplace(&tentativeList,temp,temp.nodeNcost)){
 						//dbg(ROUTING_CHANNEL,"Replace from tentativeList dest:%d cost:%d nextHop:%d\n", temp.dest, temp.nodeNcost, temp.nextHop);
                 }
-				else if(!lspTableContainsDest(&confirmedList, i) && lspMAP[lspTup.dest].cost[i] != 255 && lspMAP[i].cost[lspTup.dest] != 255 && lspTablePushBack(&tentativeList, temp)){
+				else if(!LSPContainsDest(&confirmedList, i) && lspHashMap[lspTup.dest].cost[i] != 255 && lspHashMap[i].cost[lspTup.dest] != 255 && LSPPushBack(&tentativeList, temp)){
 						//dbg(ROUTING_CHANNEL,"PushBack2 from tentativeList dest:%d cost:%d nextHop:%d \n", temp.dest, temp.nodeNcost, temp.nextHop);
                 }
 			}
@@ -605,8 +604,8 @@ implementation{
 		//dbg(ROUTING_CHANNEL, "End of dijkstra! \n");
 	}
 
-	int forwardPacketTo(lspTable* list, int dest){	
-		return lspTableLookUp(list,dest);
+	int forwardPacketTo(LSP* list, int dest){	
+		return LSPLookUp(list,dest);
 	}
 	
 	
@@ -658,21 +657,21 @@ implementation{
     void RouteTable(){
         int i;	
 		lspTuple lspTup, temp;
-		lspTableinit(&tentativeList); lspTableinit(&confirmedList);
+		LSPinit(&tentativeList); LSPinit(&confirmedList);
 		
-		lspTablePushBack(&tentativeList, temp = (lspTuple){TOS_NODE_ID,0,TOS_NODE_ID});
+		LSPPushBack(&tentativeList, temp = (lspTuple){TOS_NODE_ID,0,TOS_NODE_ID});
 		
-		while(!lspTableIsEmpty(&tentativeList)){
+		while(!LSPIsEmpty(&tentativeList)){
             lspTup = lspTupleRemoveMinCost(&tentativeList);
-			if(!lspTableContains(&confirmedList,lspTup)) //gets the minCost node from the tentative and removes it, then checks if it's in the confirmed list.
-				if(lspTablePushBack(&confirmedList,lspTup)){
+			if(!LSPContains(&confirmedList,lspTup)) //gets the minCost node from the tentative and removes it, then checks if it's in the confirmed list.
+				if(LSPPushBack(&confirmedList,lspTup)){
 					
                 }
 			for(i = 1; i < 20; i++){
-				temp = (lspTuple){i,lspMAP[lspTup.dest].cost[i]+lspTup.nodeNcost,(lspTup.nextHop == TOS_NODE_ID)?i:lspTup.nextHop};
-				if(!lspTableContainsDest(&confirmedList, i) && lspMAP[lspTup.dest].cost[i] != 255 && lspMAP[i].cost[lspTup.dest] != 255 && lspTupleReplace(&tentativeList,temp,temp.nodeNcost)){
+				temp = (lspTuple){i,lspHashMap[lspTup.dest].cost[i]+lspTup.nodeNcost,(lspTup.nextHop == TOS_NODE_ID)?i:lspTup.nextHop};
+				if(!LSPContainsDest(&confirmedList, i) && lspHashMap[lspTup.dest].cost[i] != 255 && lspHashMap[i].cost[lspTup.dest] != 255 && lspTupleReplace(&tentativeList,temp,temp.nodeNcost)){
                         
-                }else if(!lspTableContainsDest(&confirmedList, i) && lspMAP[lspTup.dest].cost[i] != 255 && lspMAP[i].cost[lspTup.dest] != 255 && lspTablePushBack(&tentativeList, temp)){
+                }else if(!LSPContainsDest(&confirmedList, i) && lspHashMap[lspTup.dest].cost[i] != 255 && lspHashMap[i].cost[lspTup.dest] != 255 && LSPPushBack(&tentativeList, temp)){
 						
                 }
 			}
@@ -682,7 +681,7 @@ implementation{
 			dbg(ROUTING_CHANNEL, "dest:%d cost:%d nextHop:%d \n",confirmedList.lspTuples[i].dest,confirmedList.lspTuples[i].nodeNcost,confirmedList.lspTuples[i].nextHop);
 		
     }
-    void printNeigh(lspMap *list, int nodeID) {
+    void printNeigh(netGRAPH *list, int nodeID) {
 		uint8_t i;
         dbg(NEIGHBOR_CHANNEL, "%d Neighbors:\n", TOS_NODE_ID);
 		for(i = 0; i < totalNodes; i++) {
