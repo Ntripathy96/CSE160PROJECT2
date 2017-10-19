@@ -223,7 +223,7 @@ implementation{
 				        dijkstra();
 				        
 				        forwardTo = forwardPacketTo(&confirmedList,myMsg->dest);
-				        dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d \n", forwardTo, myMsg->src);
+				        
 				        if(forwardTo == 0) printCostList(&lspMAP, TOS_NODE_ID);
 				        if(forwardTo == -1){
 					        dbg(ROUTING_CHANNEL, "rechecking \n");
@@ -236,8 +236,7 @@ implementation{
 						        call Sender.send(sendPackage, forwardTo);
 						        
 					        }
-				        }
-				    else{
+				        }else{
 					        dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d \n", forwardTo, myMsg->src);
 					        call Sender.send(sendPackage, forwardTo);
 					        

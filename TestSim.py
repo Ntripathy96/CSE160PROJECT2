@@ -139,13 +139,13 @@ def main():
     s.addChannel(s.FLOODING_CHANNEL);
     s.addChannel(s.ROUTING_CHANNEL);
 
-    s.runTime(1000);
+    s.runTime(100);
     s.ping(5, 4, "Hello, World");
-    s.runTime(1000);
+    s.runTime(100);
     s.ping(1, 7, "HOLA");
     s.runTime(100);
     s.ping(1, 9, "MUNDO");
-    s.runTime(1000);
+    s.runTime(100);
     #s.ping(9, 10, "Hello, World");
     #s.runTime(100);
     
