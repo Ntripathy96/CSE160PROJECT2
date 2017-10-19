@@ -589,7 +589,7 @@ implementation{
 		lspTuple lspTup, temp;
 		lspTableinit(&tentativeList); lspTableinit(&confirmedList);
 		dbg(ROUTING_CHANNEL,"start of dijkstra \n");
-        printlspMap(lspMAP);
+        //printlspMap(lspMAP);
 		lspTablePushBack(&tentativeList, temp = (lspTuple){TOS_NODE_ID,0,TOS_NODE_ID});
 		//dbg(ROUTING_CHANNEL,"PushBack from tentativeList dest:%d cost:%d nextHop:%d \n", temp.dest, temp.nodeNcost, temp.nextHop);
 		while(!lspTableIsEmpty(&tentativeList)){
