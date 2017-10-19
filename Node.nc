@@ -135,10 +135,10 @@ implementation{
     
    event void AMControl.startDone(error_t err){
 		if(err == SUCCESS){
-			call pingTimer.startPeriodic(PING_TIMER_PERIOD + (uint16_t) ((call Random.rand16())%200));
-			call Timer1.startPeriodic(PING_TIMER_PERIOD + (uint16_t) ((call Random.rand16())%200));
-			call updateNeighbors.startPeriodic(PING_TIMER_PERIOD + (uint16_t)((call Random.rand16())%200));
-			call lspTimer.startPeriodic(PING_TIMER_PERIOD + (uint16_t)((call Random.rand16())%200));
+			call pingTimer.startPeriodic(5333 + (uint16_t) ((call Random.rand16())%200));
+			call Timer1.startPeriodic(5333 + (uint16_t) ((call Random.rand16())%200));
+			call updateNeighbors.startPeriodic(5333 + (uint16_t)((call Random.rand16())%200));
+			call lspTimer.startPeriodic(5333 + (uint16_t)((call Random.rand16())%200));
 		}else{
 			//Retry until successful
 			call AMControl.start();
