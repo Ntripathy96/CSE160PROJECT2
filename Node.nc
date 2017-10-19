@@ -464,7 +464,7 @@ implementation{
 		for(i = 0; i <list->numValues; i++){
 			timeOut = iTimer - list->values[i].timer;
 			if(list->values[i].timer + 50000 < iTimer ){
-				dbg(NEIGHBOR_CHANNEL,"Removing %d from NeighborList, last seen at time %d. Time removed: %d \n", list->values[i].src, list->values[i].timer, iTimer);	
+				dbg(NEIGHBOR_CHANNEL,"Removing %d from NeighborList\n", list->values[i].src);	
 				list->values[i] = list->values[list->numValues-1];
 				list->numValues--;
 				i--;
