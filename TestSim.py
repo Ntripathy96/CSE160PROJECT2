@@ -153,13 +153,13 @@ def main():
     i=0;
     for i in range(1, s.numMote+1):
             s.neighborDMP(i);
-            s.runTime(100);
+            s.runTime(20);
             print("\n")
     
     j = 0
     for j in range(1, s.numMote+1):
             s.routeDMP(j);
-            s.runTime(100);
+            s.runTime(20);
             print("\n")        
     
     s.moteOn(5);
@@ -167,13 +167,13 @@ def main():
     i=0;
     for i in range(1, s.numMote+1):
             s.neighborDMP(i);
-            s.runTime(100);
+            s.runTime(20);
             print("\n")
     
     j = 0
     for j in range(1, s.numMote+1):
             s.routeDMP(j);
-            s.runTime(100);
+            s.runTime(20);
             print("\n")  
 
     s.ping(3, 6, "WOW");
