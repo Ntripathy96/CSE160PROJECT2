@@ -341,9 +341,9 @@ implementation{
                         }
                   }else{
                       //dbg(FLOODING_CHANNEL, "Forwarding Ping Reply to %d! \n\n", myMsg->dest);
-					dbg(ROUTING_CHANNEL,"Running dijkstra\n");
+					
 					dijkstra();
-					dbg(ROUTING_CHANNEL,"END\n\n"); 
+					
 					forwardTo = forwardPacketTo(&confirmedList,myMsg->dest);
                     dbg(ROUTING_CHANNEL,"Forwarding Ping Reply to %d and src is %d to dest: %d\n", forwardTo, myMsg->src, myMsg->dest);
                         makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL - 1,PROTOCOL_PINGREPLY,myMsg->seq,myMsg->payload, PACKET_MAX_PAYLOAD_SIZE);

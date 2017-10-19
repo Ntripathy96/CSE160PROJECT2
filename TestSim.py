@@ -139,15 +139,15 @@ def main():
     s.addChannel(s.FLOODING_CHANNEL);
     s.addChannel(s.ROUTING_CHANNEL);
 
-    s.runTime(100);
+    s.runTime(20);
     s.ping(5, 4, "Hello, World");
-    s.runTime(100);
+    s.runTime(20);
     s.ping(1, 7, "HOLA");
-    s.runTime(100);
+    s.runTime(20);
     s.moteOff(5);
-    s.runTime(1000);
+    s.runTime(20);
     s.ping(3, 6, "MUNDO");
-    s.runTime(100);
+    s.runTime(20);
     
     
     i=0;
@@ -163,7 +163,7 @@ def main():
             print("\n")        
     
     s.moteOn(5);
-    s.runTime(1000);
+    s.runTime(100);
     i=0;
     for i in range(1, s.numMote+1):
             s.neighborDMP(i);
@@ -175,7 +175,7 @@ def main():
             s.routeDMP(j);
             s.runTime(100);
             print("\n")  
-             
+
     s.ping(3, 6, "WOW");
     s.runTime(100);
 if __name__ == '__main__':
