@@ -608,9 +608,9 @@ implementation{
                 }
 			}
 		}
-		dbg(ROUTING_CHANNEL, "Printing the ROUTING_CHANNEL table! \n");
+		//dbg(ROUTING_CHANNEL, "Printing the ROUTING_CHANNEL table! \n");
 		for(i = 0; i < confirmedList.numValues; i++){
-            dbg(ROUTING_CHANNEL, "dest:%d cost:%d nextHop:%d \n",confirmedList.lspTuples[i].dest,confirmedList.lspTuples[i].nodeNcost,confirmedList.lspTuples[i].nextHop);
+            //dbg(ROUTING_CHANNEL, "dest:%d cost:%d nextHop:%d \n",confirmedList.lspTuples[i].dest,confirmedList.lspTuples[i].nodeNcost,confirmedList.lspTuples[i].nextHop);
         }
 			
 		dbg(ROUTING_CHANNEL, "End of dijkstra! \n");
