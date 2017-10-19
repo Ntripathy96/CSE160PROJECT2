@@ -62,8 +62,8 @@ implementation{
     void printNeighbors();
     void printNeighborList();
     void printNeigh(lspMap*, int);
-    arrlist Received;
-	arrlist listofNeighbors;
+    linkedList Received;
+	linkedList listofNeighbors;
     void neighborDiscovery();
     bool checkPacket(pack Packet);
 
@@ -76,7 +76,7 @@ implementation{
 	lspTable confirmedList;
 	lspTable tentativeList;
 	lspMap lspMAP[20];
-	arrlist lspTracker;
+	linkedList lspTracker;
 	float cost[20];
 	int lastSequenceTracker[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     bool Alive = TRUE;
@@ -87,8 +87,8 @@ implementation{
 	pingList pings;
 
     //project 1
-	void arrPrintList(arrlist *list);
-	bool arrListRemove(arrlist *list, uint32_t iTimer);
+	void arrPrintList(linkedList *list);
+	bool linkedListRemove(linkedList *list, uint32_t iTimer);
 	void neighborDiscoveryPacket();
 	
 	
@@ -104,7 +104,7 @@ implementation{
 
     event void Boot.booted(){
 		call AMControl.start();
-		arrListInit(&Received);
+		linkedListInit(&Received);
 		dbg(ROUTING_CHANNEL, "Booted\n");
 	}
    
@@ -121,7 +121,7 @@ implementation{
 	event void updateNeighbors.fired(){
 		uint32_t timer = call updateNeighbors.getNow(); 
 			
-			if(arrListRemove(&listofNeighbors, timer)){
+			if(linkedListRemove(&listofNeighbors, timer)){
 				arrPrintList(&listofNeighbors);
 			}
 		//dbg(ROUTING_CHANNEL, "Done checking \n\n");
@@ -258,14 +258,14 @@ implementation{
                     
                    
                     
-                    if(!arrListContains(&lspTracker, myMsg->src, myMsg->seq)){
-							if(arrListSize(&lspTracker) >= 30){
+                    if(!linkedListContains(&lspTracker, myMsg->src, myMsg->seq)){
+							if(linkedListSize(&lspTracker) >= 30){
 								//dbg(ROUTING_CHANNEL,"Popping front\n");
 								pop_front(&lspTracker);	
 							}
 							temp1.seq = myMsg->seq;
 							temp1.src = myMsg->src;
-							arrListPushBack(&lspTracker,temp1);
+							linkedListPushBack(&lspTracker,temp1);
 							lspMapInit(&lspMAP,myMsg->src);
                             
 							//dbg(ROUTING_CHANNEL,"LINK STATE PACKET from %d seq#: %d  \n", myMsg->src, myMsg->seq);								
@@ -294,16 +294,16 @@ implementation{
 						
 						
 						//dbg(NEIGHBOR_CHANNEL, "Received Neighbor reply from %d seq#: %d \n", myMsg->src, myMsg->seq);
-						if(!arrListContains(&listofNeighbors, myMsg->src, myMsg->seq)){
+						if(!linkedListContains(&listofNeighbors, myMsg->src, myMsg->seq)){
 							neighbor.seq = myMsg->seq;
 							neighbor.src = myMsg->src;
 							neighbor.timer = call Timer1.getNow();
-							if(arrListContainsKey(&listofNeighbors, myMsg->src)){
-								arrListReplace(&listofNeighbors,myMsg->src, myMsg->seq, neighbor.timer); //updates the current time of the node
+							if(linkedListContainsKey(&listofNeighbors, myMsg->src)){
+								linkedListReplace(&listofNeighbors,myMsg->src, myMsg->seq, neighbor.timer); //updates the current time of the node
 								//dbg(NEIGHBOR_CHANNEL, "Updating NeighborList................\n\n");
 							}
 							else{
-                                arrListPushBack(&listofNeighbors,neighbor);
+                                linkedListPushBack(&listofNeighbors,neighbor);
                             }
 								
 							//dbg(NEIGHBOR_CHANNEL, "NOT IN NEIGHBOR LIST, ADDING\n\n");						
@@ -449,7 +449,7 @@ implementation{
 	}	
 
 	//Checks for the node time out
-	bool arrListRemove(arrlist *list, uint32_t iTimer){
+	bool linkedListRemove(linkedList *list, uint32_t iTimer){
 		uint8_t i;
 		uint8_t j;
 		double timeOut;
@@ -467,7 +467,7 @@ implementation{
 		return success;
 	}
 	
-	void arrPrintList(arrlist* list){
+	void arrPrintList(linkedList* list){
 		uint8_t i;
 		for(i = 0; i<list->numValues; i++){
 			dbg(NEIGHBOR_CHANNEL,"NEIGHBOR: %d\n", list->values[i].src);
@@ -505,7 +505,7 @@ implementation{
         
 		for(i = 0; i < listofNeighbors.numValues; i++){
 			
-              if(!arrListIsEmpty(&listofNeighbors)){  
+              if(!linkedListIsEmpty(&listofNeighbors)){  
 
 				lspCostList[listofNeighbors.values[i].src] = 10;
 				

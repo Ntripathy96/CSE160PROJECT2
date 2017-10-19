@@ -7,17 +7,17 @@ typedef pair dataType;
 #define ARRAYSIZE 30
 #define MAXNUMVALS ARRAYSIZE
 
-typedef struct arrlist
+typedef struct linkedList
 {	
 	dataType values[ARRAYSIZE]; //list of values
 	uint8_t numValues;			//number of objects currently in the array
-}arrlist;
+}linkedList;
 
-void arrListInit(arrlist *cur){
+void linkedListInit(linkedList *cur){
 	cur->numValues = 0;	
 }
 
-bool arrListPushBack(arrlist* cur, dataType newVal){
+bool linkedListPushBack(linkedList* cur, dataType newVal){
 	if(cur->numValues != MAXNUMVALS){
 		cur->values[cur->numValues] = newVal;
 		++cur->numValues;
@@ -25,7 +25,7 @@ bool arrListPushBack(arrlist* cur, dataType newVal){
 	}else return FALSE;
 }
 
-bool arrListPushFront(arrlist* cur, dataType newVal){
+bool linkedListPushFront(linkedList* cur, dataType newVal){
 	if(cur->numValues!= MAXNUMVALS){
 		uint8_t i;
 		for( i = cur->numValues-1; i >= 0; --i){
@@ -37,12 +37,12 @@ bool arrListPushFront(arrlist* cur, dataType newVal){
 	}else	return FALSE;
 } 
 
-dataType pop_back(arrlist* cur){
+dataType pop_back(linkedList* cur){
 	--cur->numValues;
 	return cur->values[cur->numValues];
 }
 
-dataType pop_front(arrlist* cur){
+dataType pop_front(linkedList* cur){
 	dataType returnVal;
 	nx_uint8_t i;	
 	returnVal = cur->values[0];
@@ -54,17 +54,17 @@ dataType pop_front(arrlist* cur){
 	return returnVal;			
 }
 
-dataType front(arrlist* cur)
+dataType front(linkedList* cur)
 {
 	return cur->values[0];
 }
 
-dataType back(arrlist * cur)
+dataType back(linkedList * cur)
 {
 	return cur->values[cur->numValues-1];	
 }
 
-bool arrListIsEmpty(arrlist* cur)
+bool linkedListIsEmpty(linkedList* cur)
 {
 	if(cur->numValues == 0)
 		return TRUE;
@@ -72,13 +72,13 @@ bool arrListIsEmpty(arrlist* cur)
 		return FALSE;
 }
 
-uint8_t arrListSize(arrlist* cur){	return cur->numValues;}
+uint8_t linkedListSize(linkedList* cur){	return cur->numValues;}
 
-void arrListClear(arrlist* cur){	cur->numValues = 0;}
+void linkedListClear(linkedList* cur){	cur->numValues = 0;}
 
-dataType arrListGet(arrlist* cur, nx_uint8_t i){	return cur->values[i];}
+dataType linkedListGet(linkedList* cur, nx_uint8_t i){	return cur->values[i];}
 
-bool arrListContains(arrlist* list, uint8_t iSrc, uint8_t iSeq){
+bool linkedListContains(linkedList* list, uint8_t iSrc, uint8_t iSeq){
 	uint8_t i=0;
 	for(i; i<list->numValues; i++){
 		if(iSeq == list->values[i].seq && iSrc == list->values[i].src) return TRUE;
@@ -86,7 +86,7 @@ bool arrListContains(arrlist* list, uint8_t iSrc, uint8_t iSeq){
 	return FALSE;
 }
 
-bool arrListContainsKey(arrlist* list, uint8_t iSrc){
+bool linkedListContainsKey(linkedList* list, uint8_t iSrc){
 	uint8_t i=0;
 	for(i; i<list->numValues; i++){
 		if(iSrc == list->values[i].src) return TRUE;
@@ -94,7 +94,7 @@ bool arrListContainsKey(arrlist* list, uint8_t iSrc){
 	return FALSE;
 }
 
-dataType arrListGetPair(arrlist* list, uint8_t iSrc){
+dataType linkedListGetPair(linkedList* list, uint8_t iSrc){
 	uint8_t i=0;
 	pair derp;
 	for(i; i<list->numValues; i++){
@@ -105,7 +105,7 @@ dataType arrListGetPair(arrlist* list, uint8_t iSrc){
 	
 }
 
-void arrListReplace(arrlist *list, uint8_t iSrc, uint8_t iSeq, uint32_t iTimer){
+void linkedListReplace(linkedList *list, uint8_t iSrc, uint8_t iSeq, uint32_t iTimer){
 		uint8_t i;
 	for(i = 0; i<list->numValues; i++){
 		if(iTimer >= list->values[i].timer && iSrc == list->values[i].src){
@@ -118,7 +118,7 @@ void arrListReplace(arrlist *list, uint8_t iSrc, uint8_t iSeq, uint32_t iTimer){
 
 /*
 //Checks for the node time out
-void arrListRemove(arrlist *list,uint32_t iTimer){
+void linkedListRemove(linkedList *list,uint32_t iTimer){
 	uint8_t i;
 	uint8_t j;
 	for(i = 0; i<=list->numValues; i++){
