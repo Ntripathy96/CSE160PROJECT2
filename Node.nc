@@ -78,7 +78,6 @@ implementation{
 	int lastSequenceTracker[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     bool Alive = TRUE;
 	void RouteTable();
-	int discoveryPacket = AM_BROADCAST_ADDR;
     int pingTime = 5333;
     
 	pingList pingEvents;
@@ -95,7 +94,7 @@ implementation{
     
 	void dijkstra();
 	int forwardPacketTo(LSP* list, int dest);
-	void printCostList(netGRAPH *list, uint8_t nodeID);
+	void printNeighborCosts(netGRAPH *list, uint8_t nodeID);
 	
     //------Project 2-------//END
 
@@ -176,7 +175,7 @@ implementation{
                 // This is what causes the flooding
                 
                // dbg(FLOODING_CHANNEL,"Packet Received from %d meant for %d... Rebroadcasting\n",myMsg->src, myMsg->dest);
-                int forwardTo;
+                int forwardtoNode;
                 
                 
                 if (myMsg->dest == TOS_NODE_ID) //resend with protocol pingreply for ACK
@@ -193,46 +192,46 @@ implementation{
 					
 					dijkstra();
 					
-					forwardTo = forwardPacketTo(&confirmedList,myMsg->src);
+					forwardtoNode = forwardPacketTo(&confirmedList,myMsg->src);
                     
-                    dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d to destination: %d\n", forwardTo, TOS_NODE_ID, myMsg->src);
+                    dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d to destination: %d\n", forwardtoNode, TOS_NODE_ID, myMsg->src);
                     makePack(&sendPackage, TOS_NODE_ID, myMsg->src, 20,PROTOCOL_PINGREPLY,myMsg->seq,myMsg->payload, PACKET_MAX_PAYLOAD_SIZE);
-                    call Sender.send(sendPackage, forwardTo);
+                    call Sender.send(sendPackage, forwardtoNode);
                     
                     
                     }
                 }
                 else //not meant for this node forward to correct nextHop
-                {   //int forwardTo;
+                {   //int forwardtoNode;
                     makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, PROTOCOL_PING, myMsg->seq, myMsg->payload, PACKET_MAX_PAYLOAD_SIZE);
                     if(checkPacket(sendPackage)){//return true meaning packet found in SeenPackList
                         dbg(FLOODING_CHANNEL,"ALREADY SEEN: Dropping Packet from src: %d to dest: %d with seq num:%d\n", myMsg->src,myMsg->dest,myMsg->seq);
                         //dbg(FLOODING_CHANNEL,"ALREADY SEEN: Dropping Packet from src: %d to dest: %d\n", myMsg->src,myMsg->dest);
                     }else{ //
                         //makePack(&sendPackage, TOS_NODE_ID, destination, 0, PROTOCOL_PING, seqNum, payload, PACKET_MAX_PAYLOAD_SIZE);
-                    dbg(FLOODING_CHANNEL,"Packet Recieved from %d meant for %d, Sequence Number %d...Rebroadcasting\n",myMsg->src, myMsg->dest, myMsg->seq);
-                    //int forwardTo;
+                    //dbg(FLOODING_CHANNEL,"Packet Recieved from %d meant for %d, Sequence Number %d...Rebroadcasting\n",myMsg->src, myMsg->dest, myMsg->seq);
+                    //int forwardtoNode;
 				       
 				        
 				        dijkstra();
 				        
-				        forwardTo = forwardPacketTo(&confirmedList,myMsg->dest);
+				        forwardtoNode = forwardPacketTo(&confirmedList,myMsg->dest);
 				        
-				        if(forwardTo == 0) printCostList(&lspHashMap, TOS_NODE_ID);
-				        if(forwardTo == -1){
+				        if(forwardtoNode == 0) printNeighborCosts(&lspHashMap, TOS_NODE_ID);
+				        if(forwardtoNode == -1){
 					        dbg(ROUTING_CHANNEL, "rechecking \n");
 					        dijkstra();
-					        forwardTo = forwardPacketTo(&confirmedList,myMsg->dest);
-					        if(forwardTo == -1)
+					        forwardtoNode = forwardPacketTo(&confirmedList,myMsg->dest);
+					        if(forwardtoNode == -1)
 						        dbg(ROUTING_CHANNEL, "Dropping for reals\n");
 					        else{
-						        dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d \n", forwardTo, myMsg->src);
-						        call Sender.send(sendPackage, forwardTo);
+						        dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d \n", forwardtoNode, myMsg->src);
+						        call Sender.send(sendPackage, forwardtoNode);
 						        
 					        }
 				        }else{
-					        dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d \n", forwardTo, myMsg->src);
-					        call Sender.send(sendPackage, forwardTo);
+					        dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d \n", forwardtoNode, myMsg->src);
+					        call Sender.send(sendPackage, forwardtoNode);
 					        
 				    }
                     //dbg(FLOODING_CHANNEL,"Packet Recieved from %d meant for %d... Rebroadcasting\n",myMsg->src, myMsg->dest);
@@ -321,7 +320,7 @@ implementation{
                     
                 
             }else if(myMsg->protocol == PROTOCOL_PINGREPLY){ //ack message
-                    int forwardTo;
+                    int forwardtoNode;
                   if(myMsg->dest == TOS_NODE_ID){ //ACK reached source
                       makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, PROTOCOL_PINGREPLY, myMsg->seq, myMsg->payload, PACKET_MAX_PAYLOAD_SIZE);
                       //dbg(FLOODING_CHANNEL,"Node %d recieved ACK from %d\n", TOS_NODE_ID,myMsg->src);
@@ -334,10 +333,10 @@ implementation{
 					
 					dijkstra();
 					
-					forwardTo = forwardPacketTo(&confirmedList,myMsg->dest);
-                    dbg(ROUTING_CHANNEL,"Forwarding Ping Reply to %d and src is %d to dest: %d\n", forwardTo, myMsg->src, myMsg->dest);
+					forwardtoNode = forwardPacketTo(&confirmedList,myMsg->dest);
+                    dbg(ROUTING_CHANNEL,"Forwarding Ping Reply to %d and src is %d to dest: %d\n", forwardtoNode, myMsg->src, myMsg->dest);
                         makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL - 1,PROTOCOL_PINGREPLY,myMsg->seq,myMsg->payload, PACKET_MAX_PAYLOAD_SIZE);
-                        call Sender.send(sendPackage, forwardTo);
+                        call Sender.send(sendPackage, forwardtoNode);
                   }
 
             }
@@ -350,7 +349,7 @@ implementation{
     
     
     event void CommandHandler.ping(uint16_t destination, uint8_t *payload){
-        int forwardTo;
+        int forwardtoNode;
         
         dbg(GENERAL_CHANNEL, "PING EVENT \n");
         dbg(ROUTING_CHANNEL,"Ping to %d and src is %d \n", destination, TOS_NODE_ID);
@@ -359,10 +358,10 @@ implementation{
        
 		dijkstra();
 					
-		forwardTo = forwardPacketTo(&confirmedList,destination);
-        dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d \n", forwardTo, TOS_NODE_ID);
+		forwardtoNode = forwardPacketTo(&confirmedList,destination);
+        dbg(ROUTING_CHANNEL,"Forwarding to %d and src is %d \n", forwardtoNode, TOS_NODE_ID);
                     
-        call Sender.send(sendPackage, forwardTo);
+        call Sender.send(sendPackage, forwardtoNode);
         
         
         seqNum++;
@@ -438,7 +437,7 @@ implementation{
 		memcpy(&createMsg, "", sizeof(PACKET_MAX_PAYLOAD_SIZE));
 		memcpy(&dest, "", sizeof(uint8_t));
 		//dbg(NEIGHBOR_CHANNEL, "Sending seq#: %d\n", neighSeqNum);
-		makePack(&sendPackage, TOS_NODE_ID, discoveryPacket, 20, PROTOCOL_PINGREPLY, neighSeqNum++, (uint8_t *)createMsg,
+		makePack(&sendPackage, TOS_NODE_ID, AM_BROADCAST_ADDR, 20, PROTOCOL_PINGREPLY, neighSeqNum++, (uint8_t *)createMsg,
 				sizeof(createMsg));	
 		//dbg(ROUTING_CHANNEL, "NeighborDiscovery for %d\n", TOS_NODE_ID);
 		call Sender.send(sendPackage,AM_BROADCAST_ADDR);
@@ -484,7 +483,7 @@ implementation{
 		dbg(ROUTING_CHANNEL, "END \n\n");
 	}
 	
-	void printCostList(netGRAPH *list, uint8_t nodeID) {
+	void printNeighborCosts(netGRAPH *list, uint8_t nodeID) {
 		uint8_t i;
 		for(i = 0; i < maxNodes; i++) {
 			//dbg(ROUTING_CHANNEL, "From %d To %d Costs %d", nodeID, i, list[nodeID].cost[i]);
@@ -494,8 +493,11 @@ implementation{
 	void lspNeighborDiscoveryPacket(){
 		uint16_t dest;
         
-		int i;
-		uint8_t lspCostList[20] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};	
+		int i, j;
+		uint8_t lspCostList[20]; 
+        for(j = 0; j < maxNodes; j++){
+            lspCostList[i] = -1;
+        }	
 		netGRAPHInit(&lspHashMap,TOS_NODE_ID);
         
         
@@ -510,7 +512,7 @@ implementation{
 				lspHashMap[TOS_NODE_ID].cost[listofNeighbors.values[i].src] = 10;
                
                 
-				//dbg(ROUTING_CHANNEL, "Priting neighbors: %d %d\n",listofNeighbors.values[i].src, lspCostList[listofNeighbors.values[i].src]);
+				//dbg(ROUTING_CHANNEL, "Neighbor: %d and cost %d\n",listofNeighbors.values[i].src, lspCostList[listofNeighbors.values[i].src]);
 			}
 			else{
                 dbg(ROUTING_CHANNEL, "No neighbors yet. \n", listofNeighbors.values[i].src);
@@ -518,7 +520,7 @@ implementation{
 				
 		}
 		memcpy(&dest, "", sizeof(uint8_t));	
-		makePack(&sendPackage, TOS_NODE_ID, discoveryPacket, MAX_TTL, PROTOCOL_LINKSTATE, linkSequenceNum++, (uint8_t *)lspCostList, 20);	
+		makePack(&sendPackage, TOS_NODE_ID, AM_BROADCAST_ADDR, MAX_TTL, PROTOCOL_LINKSTATE, linkSequenceNum++, (uint8_t *)lspCostList, 20);	
 		
         call Sender.send(sendPackage,AM_BROADCAST_ADDR);
 		
