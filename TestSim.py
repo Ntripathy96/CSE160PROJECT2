@@ -167,6 +167,7 @@ def main():
     #s.ping(11, 13, "POKEEERR!");
     #s.runTime(2);
     s.neighborDMP(3);
+    s.routeDMP(3);
     i=0;
     for i in range(1, s.numMote+1):
             s.neighborDMP(i);
