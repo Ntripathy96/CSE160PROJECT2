@@ -82,9 +82,9 @@ implementation{
     int pingTime = 5333;
     
 	pingList pingEvents;
-
+    
     //project 1
-	void arrPrintList(linkedList *list);
+	void printLinkedList(linkedList *list);
 	bool linkedListRemove(linkedList *list, uint32_t iTimer);
 	void neighborDiscoveryPacket();
 	
@@ -119,7 +119,7 @@ implementation{
 		uint32_t timer = call updateNeighbors.getNow(); 
 			
 			if(linkedListRemove(&listofNeighbors, timer)){
-				arrPrintList(&listofNeighbors);
+				printLinkedList(&listofNeighbors);
 			}
 		//dbg(ROUTING_CHANNEL, "Done checking \n\n");
 	}
@@ -449,22 +449,22 @@ implementation{
 	bool linkedListRemove(linkedList *list, uint32_t iTimer){
 		uint8_t i;
 		uint8_t j;
-		double timeOut;
-		bool success = FALSE;
+		
+		bool removed = FALSE;
 		for(i = 0; i <list->numValues; i++){
-			timeOut = iTimer - list->values[i].timer;
+			
 			if(list->values[i].timer + 50000 < iTimer ){
 				dbg(NEIGHBOR_CHANNEL,"Removing %d from NeighborList\n", list->values[i].src);	
 				list->values[i] = list->values[list->numValues-1];
 				list->numValues--;
 				i--;
-				success =  TRUE;
+				removed =  TRUE;
 			}
 		}
-		return success;
+		return removed;
 	}
 	
-	void arrPrintList(linkedList* list){
+	void printLinkedList(linkedList* list){
 		uint8_t i;
 		for(i = 0; i<list->numValues; i++){
 			dbg(NEIGHBOR_CHANNEL,"NEIGHBOR: %d\n", list->values[i].src);
