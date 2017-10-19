@@ -62,6 +62,7 @@ implementation{
     void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t Protocol, uint16_t seq, uint8_t *payload, uint8_t length);
     void printNeighbors();
     void printNeighborList();
+    void printNeigh(lspMap*, int);
     arrlist Received;
 	arrlist friendList;
     void neighborDiscovery();
@@ -377,7 +378,7 @@ implementation{
     
     event void CommandHandler.printNeighbors()
     {
-        arrPrintList(&friendList);
+        printNeigh(&lspMAP,TOS_NODE_ID);
     }
     
     event void CommandHandler.printRouteTable(){
@@ -694,6 +695,16 @@ implementation{
 			dbg(ROUTING_CHANNEL, "dest:%d cost:%d nextHop:%d \n",confirmedList.lspTuples[i].dest,confirmedList.lspTuples[i].nodeNcost,confirmedList.lspTuples[i].nextHop);
 		
     }
+    void printNeigh(lspMap *list, int nodeID) {
+		uint8_t i;
+        dbg(NEIGHBOR_CHANNEL, "%d Neighbors:\n", TOS_NODE_ID);
+		for(i = 0; i < totalNodes; i++) {
+            if(list[nodeID].cost[i] > 0 && list[nodeID].cost[i] < 255){
+                dbg(NEIGHBOR_CHANNEL, "%d\n", i);
+            }
+			
+		}
+	}
     
     
 
