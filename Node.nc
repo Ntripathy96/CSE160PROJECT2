@@ -81,7 +81,7 @@ implementation{
 	int lastSequenceTracker[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	float totalAverageEMA[20] =  {0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215,0.0039215};
     bool isActive = TRUE;
-	
+	void RouteTable();
 	int discoveryPacket = AM_BROADCAST_ADDR;
 
     //Ping/PingReply Variables
@@ -381,7 +381,7 @@ implementation{
     }
     
     event void CommandHandler.printRouteTable(){
-        dijkstra();
+        RouteTable();
     }
     
     event void CommandHandler.printLinkState(){}
@@ -666,6 +666,33 @@ implementation{
             //other wise packet not found and we need to push it into seen pack list
                 call SeenLspPackList.pushfront(Packet);
                 return FALSE;
+    }
+    void RouteTable(){
+        int i;	
+		lspTuple lspTup, temp;
+		lspTableinit(&tentativeList); lspTableinit(&confirmedList);
+		//dbg(ROUTING_CHANNEL,"start of dijkstra \n");
+        printlspMap(lspMAP);
+		lspTablePushBack(&tentativeList, temp = (lspTuple){TOS_NODE_ID,0,TOS_NODE_ID});
+		//dbg(ROUTING_CHANNEL,"PushBack from tentativeList dest:%d cost:%d nextHop:%d \n", temp.dest, temp.nodeNcost, temp.nextHop);
+		while(!lspTableIsEmpty(&tentativeList)){
+            lspTup = lspTupleRemoveMinCost(&tentativeList);
+			if(!lspTableContains(&confirmedList,lspTup)) //gets the minCost node from the tentative and removes it, then checks if it's in the confirmed list.
+				if(lspTablePushBack(&confirmedList,lspTup))
+					dbg(ROUTING_CHANNEL,"PushBack from confirmedList dest:%d cost:%d nextHop:%d \n", lspTup.dest,lspTup.nodeNcost, lspTup.nextHop);
+			for(i = 1; i < 20; i++){
+				temp = (lspTuple){i,lspMAP[lspTup.dest].cost[i]+lspTup.nodeNcost,(lspTup.nextHop == TOS_NODE_ID)?i:lspTup.nextHop};
+				if(!lspTableContainsDest(&confirmedList, i) && lspMAP[lspTup.dest].cost[i] != 255 && lspMAP[i].cost[lspTup.dest] != 255 && lspTupleReplace(&tentativeList,temp,temp.nodeNcost)){
+                        //dbg(ROUTING_CHANNEL,"Replace from tentativeList dest:%d cost:%d nextHop:%d\n", temp.dest, temp.nodeNcost, temp.nextHop);
+                }else if(!lspTableContainsDest(&confirmedList, i) && lspMAP[lspTup.dest].cost[i] != 255 && lspMAP[i].cost[lspTup.dest] != 255 && lspTablePushBack(&tentativeList, temp)){
+						//dbg(ROUTING_CHANNEL,"PushBack2 from tentativeList dest:%d cost:%d nextHop:%d \n", temp.dest, temp.nodeNcost, temp.nextHop);
+                }
+			}
+		}
+		dbg(ROUTING_CHANNEL, "Printing the ROUTING_CHANNEL table! \n");
+		for(i = 0; i < confirmedList.numValues; i++)
+			dbg(ROUTING_CHANNEL, "dest:%d cost:%d nextHop:%d \n",confirmedList.lspTuples[i].dest,confirmedList.lspTuples[i].nodeNcost,confirmedList.lspTuples[i].nextHop);
+		
     }
     
     
