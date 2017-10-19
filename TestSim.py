@@ -166,13 +166,17 @@ def main():
     #s.runTime(1);
     #s.ping(11, 13, "POKEEERR!");
     #s.runTime(2);
-    s.neighborDMP(3);
-    s.runTime(100);
-    s.routeDMP(3);
-    s.runTime(100);
+    
+    
     i=0;
     for i in range(1, s.numMote+1):
             s.neighborDMP(i);
+            s.runTime(100);
+    
+    j = 0
+    for j in range(1, s.numMote+1):
+            s.routeDMP(j);
+            s.runTime(100);        
 
 if __name__ == '__main__':
     main()
